@@ -20,4 +20,4 @@ Système de vote électronique sécurisé pour les élections internes, dévelop
 ### 1. Cloner le projet
 ```bash
 git clone https://github.com/Horace-web/E-voting
-cd e-voting-system
+cd e-voting
