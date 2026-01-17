@@ -1,21 +1,26 @@
-import React, { useEffect } from 'react';
-import { testApi } from './services/auth.service';
+import React, { useState } from "react";
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import "./App.css";
 
 function App() {
-  useEffect(() => {
-    // Test de connexion API au chargement
-    testApi()
-      .then(data => console.log('✅ API Connection Success:', data))
-      .catch(error => console.error('❌ API Connection Failed:', error.message));
-  }, []);
+  const [currentPage, setCurrentPage] = useState("landing");
 
-  return (
-    <div style={{ padding: '20px' }}>
-      <h1>E-Voting System</h1>
-      <p>Check console (F12) for API connection status</p>
-      <div id="status">Testing API connection...</div>
-    </div>
-  );
+  const renderPage = () => {
+    switch (currentPage) {
+      case "landing":
+        return <Landing onNavigate={setCurrentPage} />;
+      case "login":
+        return <Login onNavigate={setCurrentPage} />;
+      case "register":
+        return <Register onNavigate={setCurrentPage} />;
+      default:
+        return <Landing onNavigate={setCurrentPage} />;
+    }
+  };
+
+  return <div className="app">{renderPage()}</div>;
 }
 
 export default App;
