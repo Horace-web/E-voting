@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
+
 Route::get('/test', function () {
     return response()->json([
         'message' => 'API Laravel fonctionne !',
@@ -17,3 +18,7 @@ Route::post('/login', function () {
 
 // Route pour la demande de code OTP
 Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
+
+// Route pour la vérification du code OTP
+Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
+    ->middleware('throttle:otp-verify');

@@ -10,6 +10,7 @@ use App\Mail\OtpMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\VerifyOtpRequest;
 
 class AuthController extends Controller
 {
@@ -88,4 +89,76 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+
+
+        public function verifyOtp(VerifyOtpRequest $request)
+        {
+            $email = $request->email;
+            $code  = $request->code;
+
+            DB::beginTransaction();
+
+            try {
+                $otpRecord = CodeOtp::where('email', $email)
+                    ->where('code', $code)
+                    ->where('utilise', false)
+                    ->where('expire_at', '>', now())
+                    ->first();
+
+                if (!$otpRecord) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Code invalide ou expiré'
+                    ], 401);
+                }
+
+                // Marquer OTP comme utilisé
+                $otpRecord->update(['utilise' => true]);
+
+                // Récupérer l'utilisateur + rôle
+                $user = User::where('email', $email)
+                    ->with('role')
+                    ->first();
+
+                if ($user->statut !== 'actif') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Compte désactivé'
+                    ], 403);
+                }
+
+                // Générer token Sanctum
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Connexion réussie',
+                    'token' => $token,
+                    'user' => [
+                        'id' => $user->id,
+                        'email' => $user->email,
+                        'nom' => $user->nom,
+                        'role' => $user->role->code,
+                    ]
+                ], 200);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error('Erreur vérification OTP', [
+                    'email' => $email,
+                    'error' => $e->getMessage()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur serveur'
+                ], 500);
+            }
+        }
+
+
 }
