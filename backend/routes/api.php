@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -13,3 +14,6 @@ Route::get('/test', function () {
 Route::post('/login', function () {
     return response()->json(['message' => 'Login endpoint']);
 });
+
+// Route pour la demande de code OTP
+Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
