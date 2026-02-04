@@ -1,37 +1,68 @@
-import axios from 'axios';
+import axios from "axios";
 
-// URL de base = ton backend Laravel
+// Configuration de l'API
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
+// Créer l'instance axios
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api',
-    withCredentials: true, // ESSENTIEL pour les cookies/sessions
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
-// Intercepteur pour le debug
+// Intercepteur pour ajouter le token d'authentification
 api.interceptors.request.use(
-    config => {
-        console.log(`➡️ Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
-        return config;
-    },
-    error => Promise.reject(error)
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Log en mode développement
+    if (import.meta.env.DEV) {
+      console.log(`➡️ ${config.method.toUpperCase()} ${config.url}`, config.data || "");
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
+// Intercepteur pour gérer les réponses et erreurs
 api.interceptors.response.use(
-    response => {
-        console.log(`⬅️ Response: ${response.status} ${response.statusText}`);
-        return response;
-    },
-    error => {
-        console.error('❌ Axios Error:', {
-            url: error.config?.url,
-            status: error.response?.status,
-            message: error.message
-        });
-        return Promise.reject(error);
+  (response) => {
+    if (import.meta.env.DEV) {
+      console.log(`✅ ${response.status} ${response.config.url}`);
     }
+    return response;
+  },
+  (error) => {
+    if (import.meta.env.DEV) {
+      console.error("❌ API Error:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+      });
+    }
+
+    // Gérer les erreurs d'authentification
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      // Rediriger vers login si non authentifié
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default api;
+
+// Export de l'URL de base pour d'autres usages
+export { API_BASE_URL };

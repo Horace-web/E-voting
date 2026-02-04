@@ -1,0 +1,33 @@
+/* Styles spécifiques pour la page Candidats */
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animation pour les cartes de candidats */
+.candidate-card {
+  transition: all 0.3s ease;
+}
+
+.candidate-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Style pour l'upload de photo */
+.photo-upload-zone {
+  transition: all 0.2s ease;
+}
+
+.photo-upload-zone:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+/* Aperçu photo dans le modal */
+.photo-preview-circle {
+  border: 3px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
