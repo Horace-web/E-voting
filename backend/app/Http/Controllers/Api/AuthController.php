@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RequestOtpRequest;
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Models\CodeOtp;
 use App\Mail\OtpMail;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\VerifyOtpRequest;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -160,5 +162,37 @@ class AuthController extends Controller
             }
         }
 
+        /**
+ * Récupérer les infos de l'utilisateur connecté
+ */
+    public function me(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $request->user()->id,
+                'email' => $request->user()->email,
+                'nom' => $request->user()->nom,
+                'role' => $request->user()->role->code,
+                'statut' => $request->user()->statut,
+            ]
+        ]);
+    }
+
+    /**
+     * Déconnexion (suppression du token)
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Déconnexion réussie'
+        ]);
+
+        dd($request->user(), $request->user()?->currentAccessToken());
+
+    }
 
 }
