@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\VerifyOtpRequest;
 use Illuminate\Http\Request;
+use App\Http\Requests\VerifyAccountRequest;
+use App\Models\EmailVerification;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -193,6 +196,108 @@ class AuthController extends Controller
 
         dd($request->user(), $request->user()?->currentAccessToken());
 
+    }
+
+    /**
+     * Vérification du compte via token de confirmation
+     */
+
+public function verifyAccount(VerifyAccountRequest $request)
+    {
+        DB::beginTransaction();
+
+        try {
+            $verification = EmailVerification::where('token', $request->token)
+                ->where('expire_at', '>', now())
+                ->first();
+
+            if (!$verification) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token invalide ou expiré'
+                ], 401);
+            }
+
+            $user = $verification->user;
+
+            // Définir le mot de passe choisi par l'utilisateur
+            $user->update([
+                'password' => Hash::make($request->password),
+                'statut'   => 'actif',
+            ]);
+
+            // Supprimer le token utilisé
+            $verification->delete();
+
+            // Générer token Sanctum (connexion automatique)
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Compte activé avec succès',
+                'token'   => $token,
+                'user'    => [
+                    'id'    => $user->id,
+                    'email' => $user->email,
+                    'nom'   => $user->nom,
+                    'role'  => $user->role->code,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Erreur vérification compte', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur'
+            ], 500);
+        }
+    }
+
+public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->with('role')
+            ->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Identifiants incorrects'
+            ], 401);
+        }
+
+        if ($user->statut !== 'actif') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Compte non activé ou désactivé'
+            ], 403);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Connexion réussie',
+            'token'   => $token,
+            'user'    => [
+                'id'    => $user->id,
+                'email' => $user->email,
+                'nom'   => $user->nom,
+                'role'  => $user->role->code,
+            ]
+        ], 200);
     }
 
 }

@@ -7,9 +7,12 @@ use App\Http\Controllers\Api\UserController;
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
 // ========================================
-Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
-Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
-    ->middleware('throttle:otp-verify');
+// Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
+// Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
+//     ->middleware('throttle:otp-verify');
+
+Route::post('/auth/verify-account', [AuthController::class, 'verifyAccount']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 
 // ========================================
 // ROUTES PROTÉGÉES (connexion requise)

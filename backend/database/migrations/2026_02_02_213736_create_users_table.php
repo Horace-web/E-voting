@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('email')->unique();
             $table->string('nom');
+            $table->string('email')->unique();
+            $table->string('password')->nullable(); // nullable au départ
+            $table->enum('statut', ['en_attente', 'actif', 'inactif'])->default('en_attente');
             $table->uuid('role_id');
-            $table->enum('statut', ['actif', 'inactif'])->default('actif');
             $table->timestamps();
 
             $table->foreign('role_id')
@@ -24,6 +25,7 @@ return new class extends Migration
                 ->on('roles')
                 ->onDelete('restrict');
         });
+
     }
 
 
