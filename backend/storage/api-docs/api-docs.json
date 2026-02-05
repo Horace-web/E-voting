@@ -1,0 +1,219 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Vote Électronique - Université",
+    "version": "1.0.0",
+    "description": "Documentation complète de l'API pour le système de vote électronique universitaire",
+    "contact": {
+      "email": "support@universite.bj",
+      "name": "Équipe Technique"
+    },
+    "license": {
+      "name": "Propriétaire",
+      "url": "https://universite.bj"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Serveur de développement local"
+    },
+    {
+      "url": "https://api.universite.bj",
+      "description": "Serveur de production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentification",
+      "description": "Endpoints pour l'authentification OTP"
+    }
+  ],
+  "paths": {
+    "/api/auth/request-otp": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Demander un code OTP",
+        "description": "Génère et envoie un code OTP à l'adresse email spécifiée pour l'authentification",
+        "operationId": "requestOtp",
+        "requestBody": {
+          "required": true,
+          "description": "Email de l'électeur",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "electeur1@universite.bj",
+                    "description": "Adresse email institutionnelle de l'électeur"
+                  }
+                }
+              },
+              "example": {
+                "email": "electeur1@universite.bj"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP envoyé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Code OTP envoyé par email. Vérifiez votre boîte de réception."
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Code OTP envoyé par email. Vérifiez votre boîte de réception."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Compte désactivé ou non autorisé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Compte désactivé"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Email non reconnu dans le système",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Email non reconnu"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Erreur de validation des données",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Les données fournies sont invalides."
+                    },
+                    "errors": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "example": {
+                        "email": ["Le champ email est obligatoire."]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur interne du serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Erreur lors de l'envoi du code"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "required": ["success", "message"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Opération réussie"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "message"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Une erreur est survenue"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Authentification par token JWT"
+      }
+    }
+  }
+}
