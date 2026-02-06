@@ -5,7 +5,7 @@ import ProtectedRoute from "../auth/ProtectedRoute";
 import Landing from "../pages/Landing";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-import Otp from "../pages/Otp";
+import ConfirmAccount from "../pages/ConfirmAccount";
 import Vote from "../pages/Vote";
 import Results from "../pages/Results";
 import Admin from "../pages/Admin";
@@ -25,7 +25,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/otp" element={<Otp />} />
+      <Route path="/confirm/:token" element={<ConfirmAccount />} />
       <Route path="/elections" element={<Landing />} />
       <Route path="/results" element={<Results />} />
 

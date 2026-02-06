@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import API_ROUTES from "../config/api.routes";
 
 /**
  * Service de gestion des élections
@@ -11,7 +12,7 @@ const electionService = {
    * @returns {Promise} Liste des élections
    */
   getAll: async (params = {}) => {
-    const response = await api.get("/elections", { params });
+    const response = await api.get(API_ROUTES.ELECTIONS.LIST, { params });
     return response.data;
   },
 
@@ -21,7 +22,7 @@ const electionService = {
    * @returns {Promise} Détails de l'élection
    */
   getById: async (id) => {
-    const response = await api.get(`/elections/${id}`);
+    const response = await api.get(API_ROUTES.ELECTIONS.GET(id));
     return response.data;
   },
 
@@ -31,7 +32,7 @@ const electionService = {
    * @returns {Promise} Élection créée
    */
   create: async (data) => {
-    const response = await api.post("/elections", data);
+    const response = await api.post(API_ROUTES.ELECTIONS.CREATE, data);
     return response.data;
   },
 
@@ -42,7 +43,7 @@ const electionService = {
    * @returns {Promise} Élection mise à jour
    */
   update: async (id, data) => {
-    const response = await api.put(`/elections/${id}`, data);
+    const response = await api.put(API_ROUTES.ELECTIONS.UPDATE(id), data);
     return response.data;
   },
 
@@ -52,7 +53,7 @@ const electionService = {
    * @returns {Promise}
    */
   delete: async (id) => {
-    const response = await api.delete(`/elections/${id}`);
+    const response = await api.delete(API_ROUTES.ELECTIONS.DELETE(id));
     return response.data;
   },
 
@@ -62,7 +63,7 @@ const electionService = {
    * @returns {Promise}
    */
   publish: async (id) => {
-    const response = await api.post(`/elections/${id}/publish`);
+    const response = await api.post(API_ROUTES.ELECTIONS.PUBLISH(id));
     return response.data;
   },
 
@@ -72,7 +73,7 @@ const electionService = {
    * @returns {Promise}
    */
   close: async (id) => {
-    const response = await api.post(`/elections/${id}/close`);
+    const response = await api.post(API_ROUTES.ELECTIONS.CLOSE(id));
     return response.data;
   },
 
@@ -119,7 +120,7 @@ const electionService = {
    * @returns {Promise} Statistiques (votes, participation, etc.)
    */
   getStats: async (id) => {
-    const response = await api.get(`/elections/${id}/stats`);
+    const response = await api.get(API_ROUTES.ELECTIONS.STATISTICS(id));
     return response.data;
   },
 
@@ -129,7 +130,7 @@ const electionService = {
    * @returns {Promise} Liste des candidats
    */
   getCandidates: async (electionId) => {
-    const response = await api.get(`/elections/${electionId}/candidates`);
+    const response = await api.get(API_ROUTES.ELECTIONS.CANDIDATES(electionId));
     return response.data;
   },
 
@@ -140,7 +141,7 @@ const electionService = {
    * @returns {Promise}
    */
   addCandidate: async (electionId, candidateId) => {
-    const response = await api.post(`/elections/${electionId}/candidates`, {
+    const response = await api.post(API_ROUTES.CANDIDATES.CREATE(electionId), {
       candidate_id: candidateId,
     });
     return response.data;
@@ -153,7 +154,7 @@ const electionService = {
    * @returns {Promise}
    */
   removeCandidate: async (electionId, candidateId) => {
-    const response = await api.delete(`/elections/${electionId}/candidates/${candidateId}`);
+    const response = await api.delete(API_ROUTES.CANDIDATES.DELETE(candidateId));
     return response.data;
   },
 };

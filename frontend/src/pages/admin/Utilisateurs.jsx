@@ -13,6 +13,18 @@ import {
   Download,
   Mail,
   Loader2,
+  User,
+  Shield,
+  AlertCircle,
+  Info,
+  CheckCircle2,
+  Users as UsersIcon,
+  UserCog,
+  Eye,
+  UserMinus,
+  TrendingUp,
+  Calendar,
+  BarChart3,
 } from "lucide-react";
 import userService from "../../services/user.service";
 import config from "../../config/app.config";
@@ -301,31 +313,65 @@ function Utilisateurs() {
         </div>
 
         {/* Statistiques rapides */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className="stat-card">
-            <div className="stat-label">Total</div>
-            <div className="stat-value">{stats.total}</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <UsersIcon className="text-blue-600" size={24} />
+              </div>
+              <TrendingUp className="text-blue-400" size={20} />
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Total utilisateurs</div>
+            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Administrateurs</div>
-            <div className="stat-value text-purple-600">{stats.admins}</div>
+          
+          <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-purple-500 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Shield className="text-purple-600" size={24} />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Administrateurs</div>
+            <div className="text-2xl font-bold text-purple-600">{stats.admins}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Électeurs</div>
-            <div className="stat-value text-blue-600">{stats.voters}</div>
+          
+          <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <User className="text-blue-600" size={24} />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Électeurs</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.voters}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Auditeurs</div>
-            <div className="stat-value text-green-600">{stats.auditors}</div>
+          
+          <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-500 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Eye className="text-green-600" size={24} />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Auditeurs</div>
+            <div className="text-2xl font-bold text-green-600">{stats.auditors}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Inactifs</div>
-            <div className="stat-value text-red-600">{stats.inactifs}</div>
+          
+          <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-500 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <UserMinus className="text-red-600" size={24} />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Inactifs</div>
+            <div className="text-2xl font-bold text-red-600">{stats.inactifs}</div>
           </div>
         </div>
 
         {/* Filtres et recherche */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="text-gray-600" size={20} />
+            <h3 className="text-sm font-semibold text-gray-700">Filtres et recherche</h3>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search
@@ -335,18 +381,18 @@ function Utilisateurs() {
               <input
                 type="text"
                 placeholder="Rechercher par nom ou email..."
-                className="input-field pl-10"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="relative">
-              <Filter
+              <Shield
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={20}
               />
               <select
-                className="input-field pl-10"
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
                 value={filtreRole}
                 onChange={(e) => setFiltreRole(e.target.value)}
               >
@@ -357,14 +403,19 @@ function Utilisateurs() {
                   </option>
                 ))}
               </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
             <div className="relative">
-              <Filter
+              <CheckCircle2
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={20}
               />
               <select
-                className="input-field pl-10"
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
                 value={filtreStatut}
                 onChange={(e) => setFiltreStatut(e.target.value)}
               >
@@ -372,103 +423,179 @@ function Utilisateurs() {
                 <option value="actif">Actifs uniquement</option>
                 <option value="inactif">Inactifs uniquement</option>
               </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
+          {(searchTerm || filtreRole !== 'all' || filtreStatut !== 'all') && (
+            <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <span className="text-sm text-blue-800">
+                <strong>{utilisateursFiltres.length}</strong> utilisateur{utilisateursFiltres.length > 1 ? 's' : ''} trouvé{utilisateursFiltres.length > 1 ? 's' : ''}
+              </span>
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setFiltreRole('all');
+                  setFiltreStatut('all');
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+              >
+                <X size={16} />
+                Réinitialiser
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tableau des utilisateurs */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Utilisateur
+                  <th className="px-6 py-4 text-left">
+                    <div className="flex items-center gap-2">
+                      <User size={16} className="text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Utilisateur
+                      </span>
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Email
+                  <th className="px-6 py-4 text-left">
+                    <div className="flex items-center gap-2">
+                      <Mail size={16} className="text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Email
+                      </span>
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Rôle
+                  <th className="px-6 py-4 text-left">
+                    <div className="flex items-center gap-2">
+                      <Shield size={16} className="text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Rôle
+                      </span>
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Statut
+                  <th className="px-6 py-4 text-left">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Statut
+                      </span>
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Dernière connexion
+                  <th className="px-6 py-4 text-left">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Dernière connexion
+                      </span>
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Votes
+                  <th className="px-6 py-4 text-left">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 size={16} className="text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Votes
+                      </span>
+                    </div>
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Actions
+                  <th className="px-6 py-4 text-right">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Actions
+                    </span>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {utilisateursFiltres.map((user) => {
+              <tbody className="divide-y divide-gray-100">
+                {utilisateursFiltres.map((user, index) => {
                   const roleBadge = getRoleBadge(user.role);
                   return (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={user.id} 
+                      className="hover:bg-blue-50/30 transition-colors group"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-blue-100 group-hover:ring-blue-200 transition-all">
                             {user.nom
                               .split(" ")
                               .map((n) => n[0])
                               .join("")
-                              .slice(0, 2)}
+                              .slice(0, 2)
+                              .toUpperCase()}
                           </div>
-                          <div className="font-medium text-gray-900">{user.nom}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Mail size={14} className="text-gray-400" />
-                          {user.email}
+                          <div>
+                            <div className="font-semibold text-gray-900">{user.nom}</div>
+                            <div className="text-xs text-gray-500">ID: {user.id}</div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${roleBadge.color}`}
-                        >
-                          {roleBadge.label}
-                        </span>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <Mail size={14} className="text-gray-400" />
+                          <span className="truncate max-w-[200px]" title={user.email}>
+                            {user.email}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm ${roleBadge.color}`}>
+                            {user.role === 'admin' && <Shield size={12} />}
+                            {user.role === 'electeur' && <User size={12} />}
+                            {user.role === 'auditeur' && <Eye size={12} />}
+                            {roleBadge.label}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={() => toggleStatut(user.id)}
-                          className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm ${
                             user.statut === "actif"
-                              ? "bg-green-100 text-green-700 hover:bg-green-200"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              ? "bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-md"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
                           }`}
+                          title="Cliquez pour changer le statut"
                         >
                           {user.statut === "actif" ? <UserCheck size={14} /> : <UserX size={14} />}
                           {user.statut === "actif" ? "Actif" : "Inactif"}
                         </button>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {formatDate(user.last_login)}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Calendar size={14} className="text-gray-400" />
+                          {formatDate(user.last_login)}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900">{user.nb_votes}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-sm">
+                            {user.nb_votes}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => openEditModal(user)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Modifier"
+                            className="group/btn p-2.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:shadow-md"
+                            title="Modifier l'utilisateur"
                           >
-                            <Edit2 size={18} />
+                            <Edit2 size={18} className="group-hover/btn:scale-110 transition-transform" />
                           </button>
                           <button
                             onClick={() => handleDelete(user.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Supprimer"
+                            className="group/btn p-2.5 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:shadow-md"
+                            title="Supprimer l'utilisateur"
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={18} className="group-hover/btn:scale-110 transition-transform" />
                           </button>
                         </div>
                       </td>
@@ -480,114 +607,253 @@ function Utilisateurs() {
           </div>
 
           {utilisateursFiltres.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Aucun utilisateur trouvé</p>
+            <div className="text-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="text-gray-400" size={32} />
+                </div>
+                <div>
+                  <p className="text-gray-900 font-semibold text-lg">Aucun utilisateur trouvé</p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    {searchTerm || filtreRole !== 'all' || filtreStatut !== 'all'
+                      ? "Essayez de modifier vos filtres de recherche"
+                      : "Commencez par créer un nouvel utilisateur"}
+                  </p>
+                </div>
+                {(searchTerm || filtreRole !== 'all' || filtreStatut !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setFiltreRole('all');
+                      setFiltreStatut('all');
+                    }}
+                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
 
         {/* Modal Création/Édition */}
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2 className="modal-title">
-                  {modalMode === "create" ? "Nouvel utilisateur" : "Modifier l'utilisateur"}
-                </h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X size={24} />
-                </button>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn"
+            onClick={() => setShowModal(false)}
+          >
+            <div 
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slideUp"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] px-6 py-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <User className="text-white" size={24} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">
+                        {modalMode === "create" ? "Nouvel utilisateur" : "Modifier l'utilisateur"}
+                      </h2>
+                      <p className="text-blue-100 text-sm">
+                        {modalMode === "create" 
+                          ? "Ajoutez un nouvel utilisateur à la plateforme" 
+                          : "Modifiez les informations de l'utilisateur"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body">
-                  <div className="form-group">
-                    <label className="form-label">Nom complet *</label>
-                    <input
-                      type="text"
-                      name="nom"
-                      className="input-field"
-                      value={formData.nom}
-                      onChange={handleInputChange}
-                      placeholder="Ex: DOHOU Ercias Audrey"
-                      required
-                    />
+              <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="px-6 py-6 space-y-6">
+                  
+                  {/* Info Banner */}
+                  {modalMode === "create" && (
+                    <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 flex gap-3">
+                      <Info className="text-blue-600 flex-shrink-0" size={20} />
+                      <div className="text-sm">
+                        <p className="font-semibold text-blue-900 mb-1">
+                          Création automatique du compte
+                        </p>
+                        <p className="text-blue-700">
+                          Un email de bienvenue avec les instructions de connexion sera envoyé à l'utilisateur.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nom complet */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nom complet <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="text-gray-400" size={20} />
+                      </div>
+                      <input
+                        type="text"
+                        name="nom"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white"
+                        value={formData.nom}
+                        onChange={handleInputChange}
+                        placeholder="Ex: DOHOU Ercias Audrey"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Entrez le nom complet (nom et prénom)
+                    </p>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Email institutionnel *</label>
-                    <input
-                      type="email"
-                      name="email"
-                      className="input-field"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="prenom.nom@universite.bj"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email institutionnel <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Mail className="text-gray-400" size={20} />
+                      </div>
+                      <input
+                        type="email"
+                        name="email"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="prenom.nom@universite.bj"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
                       L'utilisateur recevra un code OTP à cette adresse pour se connecter
                     </p>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Rôle *</label>
-                    <select
-                      name="role"
-                      className="input-field"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      {roles.map((role) => (
-                        <option key={role.value} value={role.value}>
-                          {role.label}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="mt-2 text-xs text-gray-600 space-y-1">
-                      <p>
-                        <strong>Administrateur:</strong> Gestion complète du système
-                      </p>
-                      <p>
-                        <strong>Électeur:</strong> Participation aux votes uniquement
-                      </p>
-                      <p>
-                        <strong>Auditeur:</strong> Consultation des logs et résultats
-                      </p>
+                  {/* Grid pour Rôle et Statut */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    
+                    {/* Rôle */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Rôle <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Shield className="text-gray-400" size={20} />
+                        </div>
+                        <select
+                          name="role"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
+                          value={formData.role}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          {roles.map((role) => (
+                            <option key={role.value} value={role.value}>
+                              {role.label}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Statut */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Statut <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <CheckCircle2 className="text-gray-400" size={20} />
+                        </div>
+                        <select
+                          name="statut"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
+                          value={formData.statut}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="actif">Actif</option>
+                          <option value="inactif">Inactif</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Statut *</label>
-                    <select
-                      name="statut"
-                      className="input-field"
-                      value={formData.statut}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="actif">Actif</option>
-                      <option value="inactif">Inactif</option>
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Les utilisateurs inactifs ne peuvent pas se connecter
+                  {/* Descriptions des rôles */}
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2.5">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">Description des rôles</p>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div className="text-sm">
+                        <span className="font-semibold text-gray-900">Administrateur :</span>
+                        <span className="text-gray-600"> Gestion complète du système (élections, utilisateurs, résultats)</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div className="text-sm">
+                        <span className="font-semibold text-gray-900">Électeur :</span>
+                        <span className="text-gray-600"> Participation aux votes uniquement</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <div className="text-sm">
+                        <span className="font-semibold text-gray-900">Auditeur :</span>
+                        <span className="text-gray-600"> Consultation des logs et résultats, sans modification</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Note sur le statut */}
+                  <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 flex gap-3">
+                    <AlertCircle className="text-amber-600 flex-shrink-0" size={18} />
+                    <p className="text-sm text-amber-800">
+                      Les utilisateurs avec le statut <strong>"Inactif"</strong> ne pourront pas se connecter à la plateforme.
                     </p>
                   </div>
                 </div>
 
-                <div className="modal-footer">
+                {/* Footer */}
+                <div className="bg-gray-50 px-6 py-4 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end border-t">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="btn-secondary"
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-all"
                   >
                     Annuler
                   </button>
-                  <button type="submit" className="btn-primary">
+                  <button 
+                    type="submit" 
+                    className="px-6 py-2.5 bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] text-white rounded-lg font-semibold hover:from-[#152d47] hover:to-[#1e3a5f] transition-all shadow-lg hover:shadow-xl"
+                  >
                     {modalMode === "create"
                       ? "Créer l'utilisateur"
                       : "Enregistrer les modifications"}

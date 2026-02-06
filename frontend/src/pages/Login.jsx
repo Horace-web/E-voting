@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { Mail, ArrowRight, Loader2, Shield, Lock, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Shield, CheckCircle } from "lucide-react";
 import Header from "../components/Header";
+import { useAuth } from "../auth/AuthContext";
 import authService from "../services/auth.service";
 import config from "../config/app.config";
 
 const Login = () => {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -16,6 +20,12 @@ const Login = () => {
       newErrors.email = "L'adresse email est requise";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "L'adresse email n'est pas valide";
+    }
+
+    if (!password.trim()) {
+      newErrors.password = "Le mot de passe est requis";
+    } else if (password.length < 6) {
+      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
     }
 
     setErrors(newErrors);
@@ -30,24 +40,65 @@ const Login = () => {
     }
 
     setIsLoading(true);
+    setErrors({});
 
     try {
-      // En mode mock, simuler l'envoi
+      let userData;
+      let role;
+
       if (config.useMockData) {
+        // Simulation connexion
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        console.log("[MOCK] OTP envoyé à:", email);
+        console.log("[MOCK] Connexion:", email);
+
+        // Simuler données utilisateur
+        userData = {
+          id: 1,
+          firstName: "Jean",
+          lastName: "Dupont",
+          email: email,
+        };
+
+        // Simuler : si email contient "admin", c'est un admin, sinon électeur
+        role = email.includes("admin") ? "admin" : "voter";
       } else {
         // Appel API réel
-        await authService.sendOTP(email);
+        const response = await authService.login(email, password);
+        userData = response.user;
+        role = response.user.role || "voter";
       }
 
-      // Stocker l'email dans sessionStorage pour la page OTP
-      sessionStorage.setItem("otp_email", email);
+      login(userData, role);
 
-      // Rediriger vers la page OTP avec rechargement complet
-      window.location.href = "/otp";
+      // Récupérer la destination de redirection (si définie depuis la landing page)
+      const redirectPath = sessionStorage.getItem("redirectAfterLogin");
+      sessionStorage.removeItem("redirectAfterLogin");
+
+      // Redirection selon le rôle
+      if (role === "admin") {
+        window.location.href = "/admin";
+      } else if (redirectPath && redirectPath.startsWith("/electeur")) {
+        window.location.href = redirectPath;
+      } else {
+        window.location.href = "/electeur";
+      }
     } catch (error) {
-      setErrors({ email: error.response?.data?.message || "Erreur lors de l'envoi du code" });
+      console.error("Erreur connexion:", error);
+
+      if (error.response?.status === 403) {
+        setErrors({
+          general:
+            "Votre compte n'est pas encore activé. Veuillez confirmer votre inscription via le lien envoyé par email.",
+        });
+      } else if (error.response?.status === 401) {
+        setErrors({
+          general: "Email ou mot de passe incorrect",
+        });
+      } else {
+        setErrors({
+          general: error.response?.data?.message || "Erreur lors de la connexion",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -59,152 +110,177 @@ const Login = () => {
       <Header showNav={true} />
 
       {/* Main Content */}
-      <main className="flex-1 grid md:grid-cols-2 gap-8 md:gap-16 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-16 w-full items-center">
-        {/* Left Section - Info */}
-        <section className="space-y-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Accédez à vos scrutins</h1>
-          <p className="text-lg text-gray-600">
-            Connectez-vous en toute sécurité grâce à notre système d'authentification par code à
-            usage unique (OTP).
-          </p>
+      <div className="flex-1 py-8 md:py-16 px-4 max-w-7xl mx-auto w-full">
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          {/* Left Section - Info */}
+          <div className="space-y-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Accédez à vos scrutins</h1>
+            <p className="text-xl text-gray-600">
+              Connectez-vous en toute sécurité avec votre email et mot de passe reçus par email.
+            </p>
 
-          <div className="space-y-4 pt-4">
-            <div className="flex gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Shield className="text-blue-600" size={24} />
+            <div className="space-y-4 pt-4">
+              {/* Authentification sécurisée */}
+              <div className="flex gap-4">
+                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Shield className="text-blue-600" size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Authentification sécurisée
+                  </h3>
+                  <p className="text-gray-600">Mot de passe haché avec bcrypt (cost=10)</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Authentification sécurisée</h3>
-                <p className="text-sm text-gray-600">
-                  Code unique envoyé par email, valable 10 minutes
-                </p>
-              </div>
-            </div>
 
-            <div className="flex gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Lock className="text-green-600" size={24} />
+              {/* Données protégées */}
+              <div className="flex gap-4">
+                <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Lock className="text-green-600" size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Données protégées</h3>
+                  <p className="text-gray-600">Chiffrement de bout en bout pour vos informations</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Données protégées</h3>
-                <p className="text-sm text-gray-600">
-                  Chiffrement de bout en bout pour vos informations
-                </p>
-              </div>
-            </div>
 
-            <div className="flex gap-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="text-purple-600" size={24} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Vote anonyme garanti</h3>
-                <p className="text-sm text-gray-600">
-                  Votre identité et votre vote restent séparés
-                </p>
+              {/* Confirmation par email */}
+              <div className="flex gap-4">
+                <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="text-amber-600" size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Confirmation par email
+                  </h3>
+                  <p className="text-gray-600">
+                    Activation du compte après confirmation (lien valide 48h)
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Right Section - Form */}
-        <section>
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
-            <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6 mx-auto">
-              <Mail className="text-blue-600" size={28} />
+          {/* Right Section - Login Form */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            {/* Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#1e3a5f] to-[#2a4a73] rounded-2xl flex items-center justify-center">
+                <Mail className="text-white" size={32} />
+              </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Connexion</h2>
-            <p className="text-gray-600 text-center mb-6">
-              Connectez-vous pour accéder à vos scrutins
+            {/* Title */}
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-2">Connexion</h2>
+            <p className="text-center text-gray-600 mb-8">
+              Entrez vos identifiants reçus par email
             </p>
 
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors mb-6"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              <span className="font-medium text-gray-700">Continuer avec Google</span>
-            </button>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+            {/* Error Alert */}
+            {errors.general && (
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+                {errors.general}
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500 font-medium">OU</span>
-              </div>
-            </div>
+            )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Adresse email
                 </label>
-                <input
-                  type="email"
-                  id="email"
-                  placeholder="votre.email@universite.fr"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (errors.email) setErrors({ ...errors, email: null });
-                  }}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all ${
-                    errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="text-gray-400" size={20} />
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setErrors({ ...errors, email: "", general: "" });
+                    }}
+                    placeholder="votant@universite.bj"
+                    disabled={isLoading}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all ${
+                      errors.email ? "border-red-300 bg-red-50" : "border-gray-300 bg-white"
+                    } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  />
+                </div>
+                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
               </div>
 
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="text-gray-400" size={20} />
+                  </div>
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setErrors({ ...errors, password: "", general: "" });
+                    }}
+                    placeholder="Entrez votre mot de passe"
+                    disabled={isLoading}
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all ${
+                      errors.password ? "border-red-300 bg-red-50" : "border-gray-300 bg-white"
+                    } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="text-gray-400 hover:text-gray-600" size={20} />
+                    ) : (
+                      <Eye className="text-gray-400 hover:text-gray-600" size={20} />
+                    )}
+                  </button>
+                </div>
+                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              </div>
+
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-[#1e3a5f] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#16304d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLoading}
+                className="w-full py-3 px-4 bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] text-white rounded-lg font-semibold hover:from-[#0f2744] hover:to-[#1e3a5f] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="animate-spin" size={16} />
-                    Envoi du code...
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Connexion en cours...
                   </>
                 ) : (
                   <>
-                    Envoyer le code OTP
-                    <ArrowRight size={16} />
+                    Se connecter
+                    <ArrowRight size={20} />
                   </>
                 )}
               </button>
             </form>
 
-            <p className="text-center text-sm text-gray-600 mt-6">
-              Pas encore de compte ?{" "}
-              <button
-                onClick={() => navigate("/register")}
-                className="text-[#1e3a5f] hover:underline font-semibold"
-              >
-                Créer un compte
-              </button>
-            </p>
+            {/* Footer Info */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Vous n'avez pas encore confirmé votre inscription ?
+              </p>
+              <p className="text-sm text-gray-600 mt-1">Vérifiez vos emails (lien valide 48h)</p>
+            </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 };

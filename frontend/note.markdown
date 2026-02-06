@@ -67,7 +67,7 @@ Exigences fonctionnelles et non fonctionnelles
 Exigences fonctionnelles (vue macro)
 Le système est une application web de vote électronique sécurisé. Les fonctionnalités principales sont :
 Gestion des élections : Création, configuration et gestion complète des élections avec dates et candidats.
-Authentification forte : OTP envoyé par email institutionnel pour vérification d'identité.
+
 Vote sécurisé et anonyme : Vérification d'unicité, séparation identité/bulletin, anonymisation totale.
 Dépouillement automatique : Comptage instantané, résultats en temps réel, statistiques de participation.
 Tableau de bord : Consultation statistiques temps réel, export PDF/CSV, consultation audit log.
@@ -85,9 +85,7 @@ Acteurs et vue d'utilisation
 Acteurs du système
 Administrateur
 Responsable de la création, configuration et gestion des élections. Consulte statistiques, clôture élections, accède aux résultats et audit log.
-Électeur
-Personne habilitée à voter. S'authentifie via OTP, consulte candidats, vote, visualise confirmation.
-Auditeur
+
 Vérifie la régularité du processus. Consulte logs, vérifie intégrité, génère rapports (sans modifier données).
 Scénarios d'usage principaux
 Scénario 1 – Création d'une élection
@@ -909,3 +907,188 @@ Simple Mail Transfer Protocol - Protocole envoi emails
 FIN DU DOCUMENT
 
 Pour toute question ou clarification sur cette architecture, veuillez contacter l'équipe projet.
+
+Système de Vote Électronique Sécurisé
+pour Élections Internes
+
+Document d'Architecture Logicielle
+Version 1.1 - Workflow Authentification par Mot de Passe
+Date : 04 Février 2026
+
+Rôle
+Nom
+Chef de Projet / Développeur Full-Stack
+ODOUNLAMI Horace
+Développeur Back-End
+DOHOU Ercias Audrey
+Développeur Front-End
+HOUNDETON Jeffry
+
+
+1. Contexte et objectifs
+1.1 Contexte général
+Dans de nombreuses institutions universitaires et organisations, les élections internes se déroulent encore majoritairement sur papier. Ce processus traditionnel présente plusieurs limites importantes : lenteur du dépouillement pouvant prendre plusieurs heures voire plusieurs jours, risques d'erreurs humaines dans le comptage des voix, possibilité de doublons ou de fraudes difficiles à détecter, et manque de transparence dans le processus électoral.
+1.2 Objectifs du système
+L'application de vote électronique a pour objectif général de fournir une plateforme web sécurisée, moderne et fiable permettant d'organiser et de conduire des élections internes de manière transparente et efficace. Plus précisément, les objectifs principaux du système sont les suivants :
+Garantir l'unicité du vote : mettre en place des mécanismes techniques garantissant qu'un électeur ne puisse voter qu'une seule fois par élection.
+Assurer l'anonymat et la confidentialité : séparer complètement l'identité du votant de son choix électoral.
+Renforcer la sécurité : implémenter une authentification par email et mot de passe avec confirmation d'inscription par lien email (expire 48h).
+Accélérer le dépouillement : fournir des résultats en temps réel dès la clôture de l'élection.
+Améliorer la transparence : offrir un tableau de bord avec exports PDF/CSV pour l'audit.
+
+5. Conception des modules
+5.2.1 Module « Utilisateurs et authentification »
+1. Rôle et responsabilité
+Gestion des comptes utilisateurs et authentification sécurisée par email et mot de passe. Ce module garantit que seuls les utilisateurs ayant confirmé leur inscription peuvent accéder au système. Il gère le workflow complet : création de compte par admin avec génération de mot de passe aléatoire → envoi email de confirmation avec lien unique (48h) → activation du compte après clic sur le lien → envoi des identifiants (email + mot de passe) → authentification classique.
+2. Fonctionnalités principales
+Création de compte par administrateur avec génération automatique d'un mot de passe aléatoire sécurisé (12 caractères).
+Envoi email de confirmation avec lien unique (token 64 caractères, expiration 48h).
+Confirmation d'inscription par l'utilisateur via clic sur le lien (changement statut Inactif → Actif).
+Envoi automatique email avec identifiants de connexion (email + mot de passe) après confirmation.
+Authentification classique email + mot de passe (vérification hash bcrypt).
+Stockage temporaire sécurisé du mot de passe en clair (table passwords_temporary, suppression automatique après envoi).
+Gestion des rôles (Admin, Électeur, Auditeur) et contrôle d'accès par middleware.
+3. Entités du module avec relations
+Entité User (Utilisateur)
+Attribut
+Type
+Description
+Contraintes
+id
+UUID
+Identifiant unique
+PK, unique
+email
+VARCHAR(255)
+Email institutionnel
+Obligatoire, unique, index
+nom
+VARCHAR(255)
+Nom complet
+Obligatoire
+password_hash
+VARCHAR(255)
+Hash bcrypt mot de passe
+Obligatoire (bcrypt cost=10)
+role_id
+UUID
+Référence rôle
+FK → roles.id
+statut
+ENUM
+Inactif / Actif
+Défaut Inactif
+created_at
+TIMESTAMP
+Date création
+Auto
+updated_at
+TIMESTAMP
+Date MAJ
+Auto
+
+
+Entité TokenConfirmation
+Attribut
+Type
+Description
+Contraintes
+id
+UUID
+Identifiant unique
+PK
+user_id
+UUID
+Référence utilisateur
+FK → users.id, UNIQUE
+token
+VARCHAR(64)
+Token unique
+Obligatoire, unique, index
+expire_at
+TIMESTAMP
+Expiration (+48h)
+Obligatoire
+
+
+Entité PasswordTemporary (Stockage temporaire)
+Attribut
+Type
+Description
+Contraintes
+id
+UUID
+Identifiant unique
+PK
+user_id
+UUID
+Référence utilisateur
+FK → users.id, UNIQUE
+password_plain
+TEXT
+Mot de passe CLAIR
+Obligatoire (temporaire)
+expire_at
+TIMESTAMP
+Expiration (+48h)
+Obligatoire
+
+
+Relations entre entités :
+users.role_id → roles.id (Many-to-One)
+tokens_confirmation.user_id → users.id (One-to-One, UNIQUE)
+passwords_temporary.user_id → users.id (One-to-One, UNIQUE)
+4. Workflow complet (4 étapes)
+Étape 1 : Création utilisateur par admin
+Admin remplit formulaire (email, nom, rôle) → Système génère password aléatoire 12 caractères → TRANSACTION : (1) User (password_hash=bcrypt, statut=Inactif), (2) TokenConfirmation (token 64 char, expire 48h), (3) PasswordTemporary (password_plain clair, expire 48h) → Email 1 : Lien confirmation SEULEMENT.
+Étape 2 : Confirmation par utilisateur
+User clique lien → Vérif token (existe + non expiré) → Statut Inactif → Actif → Récupération password depuis PasswordTemporary → Email 2 : email + password → SUPPRESSION immédiate TokenConfirmation + PasswordTemporary.
+Étape 3 : Première connexion
+User saisit email + password → Vérif Hash::check(password, password_hash) → Génération token JWT Sanctum → Redirection selon rôle.
+Étape 4 : Connexions suivantes
+Email + password → Vérif bcrypt → Token Sanctum → Session.
+5. Interfaces API
+POST /api/auth/login : Connexion (email + password)
+POST /api/auth/logout : Déconnexion
+GET /api/auth/confirm/{token} : Confirmation inscription
+POST /api/users (admin) : Création user
+GET /api/users (admin) : Liste users
+6. Règles métier critiques
+Connexion possible UNIQUEMENT si statut = Actif
+Lien confirmation expire 48h (expire_at vérifié)
+Password plain stocké UNIQUEMENT dans passwords_temporary, SUPPRIMÉ après envoi email
+Passwords générés : 12 caractères (majuscules, minuscules, chiffres, spéciaux)
+TOUS passwords hashés bcrypt (cost=10, salt auto)
+JAMAIS password clair dans table users
+Rate limiting : 5 tentatives max / 15 min / IP
+Contraintes UNIQUE sur user_id (tokens_confirmation + passwords_temporary)
+Cron job nettoie tokens/passwords expirés toutes les heures
+
+8. Sécurité et qualités techniques
+8.1 Sécurité de l'authentification
+Hachage bcrypt des mots de passe
+Tous les mots de passe sont hachés avec bcrypt (cost=10). Bcrypt est un algorithme cryptographique à sens unique avec salt automatique, résistant au brute-force. Laravel utilise Hash::make() pour créer le hash et Hash::check() pour vérifier. Le password clair n'est JAMAIS stocké dans users.
+Stockage temporaire sécurisé
+Le password clair est temporairement stocké dans passwords_temporary UNIQUEMENT pour l'envoi par email. Durée de vie max : 48h. SUPPRESSION immédiate après envoi email identifiants. Cron job nettoie les entrées expirées toutes les heures. Compromis sécurité/fonctionnalité : password clair existe temporairement dans table dédiée séparée.
+Sessions sécurisées (Laravel Sanctum)
+Après authentification : token JWT généré via Sanctum. Token authentifie toutes requêtes API suivantes. Durée vie configurable (défaut 2h). Révocable à tout moment (déconnexion). Transmission : header Authorization: Bearer TOKEN.
+Protections contre attaques
+Rate limiting : 5 tentatives max / 15 min / IP
+HTTPS obligatoire : TLS 1.3
+CSRF protection : tokens Laravel auto
+SQL Injection : Eloquent ORM protège
+XSS : React échappe données auto
+
+12. Annexes
+12.1 Schéma base de données
+Tables principales du module authentification :
+users : Compte utilisateur (password_hash bcrypt, statut Inactif/Actif)
+roles : Rôles système (ADMIN, VOTER, AUDITOR)
+tokens_confirmation : Tokens confirmation inscription (expire 48h, user_id UNIQUE)
+passwords_temporary : Stockage temporaire passwords clair (expire 48h, user_id UNIQUE, suppression auto)
+12.2 Avantages du workflow
+Sécurité : Hash bcrypt + stockage temporaire séparé + suppression automatique
+UX : Workflow standard email + password familier
+Confirmation : Double email (confirmation + identifiants) garantit réception
+Autonomie : Pas dépendance SMTP pour chaque connexion
+Traçabilité : Statut Inactif/Actif permet audit

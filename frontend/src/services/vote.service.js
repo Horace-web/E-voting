@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import API_ROUTES from "../config/api.routes";
 
 /**
  * Service de gestion des votes
@@ -12,9 +13,8 @@ const voteService = {
    * @returns {Promise} Confirmation du vote
    */
   submit: async (electionId, candidateId) => {
-    const response = await api.post("/votes", {
-      election_id: electionId,
-      candidate_id: candidateId,
+    const response = await api.post(API_ROUTES.VOTE.SUBMIT(electionId), {
+      candidat_id: candidateId,
     });
     return response.data;
   },
@@ -25,7 +25,7 @@ const voteService = {
    * @returns {Promise} { hasVoted: boolean }
    */
   hasVoted: async (electionId) => {
-    const response = await api.get(`/votes/check/${electionId}`);
+    const response = await api.get(API_ROUTES.VOTE.HAS_VOTED(electionId));
     return response.data;
   },
 
@@ -35,7 +35,7 @@ const voteService = {
    * @returns {Promise} Liste des participations
    */
   getHistory: async (params = {}) => {
-    const response = await api.get("/votes/history", { params });
+    const response = await api.get(API_ROUTES.VOTE.HISTORY, { params });
     return response.data;
   },
 

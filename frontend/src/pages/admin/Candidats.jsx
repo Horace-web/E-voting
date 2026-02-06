@@ -1,6 +1,26 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import { Search, Plus, Edit2, Trash2, Upload, X, Filter, Loader2 } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Upload,
+  X,
+  Filter,
+  Loader2,
+  UserCircle,
+  Award,
+  FileText,
+  Hash,
+  Image,
+  Info,
+  AlertCircle,
+  Users,
+  Vote,
+  TrendingUp,
+  Layers,
+} from "lucide-react";
 import candidateService from "../../services/candidate.service";
 import electionService from "../../services/election.service";
 import config from "../../config/app.config";
@@ -198,8 +218,67 @@ function Candidats() {
           </button>
         </div>
 
+        {/* Statistiques */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600 mb-1">Total Candidats</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Award className="text-blue-600" size={24} />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center text-xs text-green-600">
+              <TrendingUp size={14} className="mr-1" />
+              Tous les candidats
+            </div>
+          </div>
+
+          {electionsDisponibles.slice(0, 3).map((election, idx) => {
+            const colors = [
+              { border: "border-purple-500", bg: "bg-purple-100", text: "text-purple-600" },
+              { border: "border-green-500", bg: "bg-green-100", text: "text-green-600" },
+              { border: "border-amber-500", bg: "bg-amber-100", text: "text-amber-600" },
+            ];
+            const color = colors[idx];
+            const count = stats.parElection[election.id] || 0;
+
+            return (
+              <div
+                key={election.id}
+                className={`bg-white rounded-xl shadow-sm p-5 border-l-4 ${color.border} hover:shadow-md transition-shadow`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p
+                      className="text-sm font-medium text-gray-600 mb-1 truncate"
+                      title={election.titre}
+                    >
+                      {election.titre.length > 20
+                        ? election.titre.substring(0, 20) + "..."
+                        : election.titre}
+                    </p>
+                    <p className={`text-2xl font-bold ${color.text}`}>{count}</p>
+                  </div>
+                  <div
+                    className={`w-12 h-12 ${color.bg} rounded-lg flex items-center justify-center`}
+                  >
+                    <Vote className={color.text} size={24} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Filtres et recherche */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="text-[#1e3a5f]" size={20} />
+            <h3 className="font-semibold text-gray-900">Filtres et recherche</h3>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <Search
@@ -208,19 +287,19 @@ function Candidats() {
               />
               <input
                 type="text"
-                placeholder="Rechercher un candidat..."
-                className="input-field pl-10"
+                placeholder="Rechercher un candidat par nom..."
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="relative">
-              <Filter
+              <Vote
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={20}
               />
               <select
-                className="input-field pl-10"
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
                 value={filtreElection}
                 onChange={(e) => setFiltreElection(e.target.value)}
               >
@@ -231,50 +310,107 @@ function Candidats() {
                   </option>
                 ))}
               </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
+          {(searchTerm || filtreElection !== "all") && (
+            <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <span className="text-sm text-blue-800">
+                <strong>{candidatsFiltres.length}</strong> candidat
+                {candidatsFiltres.length > 1 ? "s" : ""} trouvé
+                {candidatsFiltres.length > 1 ? "s" : ""}
+              </span>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFiltreElection("all");
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+              >
+                <X size={16} />
+                Réinitialiser
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Grille de candidats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {candidatsFiltres.map((candidat) => (
+          {candidatsFiltres.map((candidat, index) => (
             <div
               key={candidat.id}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 overflow-hidden group"
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
-              <div className="p-6">
-                {/* Photo et badge élection */}
-                <div className="flex justify-between items-start mb-4">
+              {/* Badge ordre en haut à droite */}
+              <div className="relative">
+                <div className="absolute top-3 right-3 z-10">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold rounded-lg shadow-lg">
+                    <Hash size={12} />
+                    {candidat.ordre_affichage}
+                  </div>
+                </div>
+
+                {/* Photo avec gradient overlay */}
+                <div className="relative h-48 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
                   <img
                     src={candidat.photo_url}
                     alt={candidat.nom}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-blue-100"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl ring-4 ring-blue-100 group-hover:ring-blue-200 transition-all"
                   />
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                    #{candidat.ordre_affichage}
-                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {/* Informations */}
+                <div className="mb-4">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+                    <Award size={18} className="text-blue-600" />
+                    {candidat.nom}
+                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Vote size={14} className="text-gray-400" />
+                    <p className="text-sm text-gray-600 font-medium">{candidat.election_titre}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                    <p className="text-sm text-gray-700 line-clamp-3">{candidat.programme}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Users size={14} />
+                    <span className="font-semibold">{candidat.nb_votes}</span> vote
+                    {candidat.nb_votes > 1 ? "s" : ""}
+                  </div>
                 </div>
 
-                {/* Informations */}
-                <h3 className="font-semibold text-lg mb-2">{candidat.nom}</h3>
-                <p className="text-sm text-gray-500 mb-3">{candidat.election_titre}</p>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{candidat.programme}</p>
-
                 {/* Actions */}
-                <div className="flex gap-2 pt-4 border-t">
+                <div className="flex gap-2 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => openEditModal(candidat)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md font-medium"
                   >
                     <Edit2 size={16} />
                     Modifier
                   </button>
                   <button
                     onClick={() => handleDelete(candidat.id)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                    className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all border border-red-200 hover:border-red-300"
+                    title="Supprimer"
                   >
-                    <Trash2 size={16} />
-                    Supprimer
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
@@ -283,78 +419,192 @@ function Candidats() {
         </div>
 
         {candidatsFiltres.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg">
-            <p className="text-gray-500">Aucun candidat trouvé</p>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 text-center py-16">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                <Award className="text-blue-600" size={40} />
+              </div>
+              <div>
+                <p className="text-gray-900 font-semibold text-lg">Aucun candidat trouvé</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  {searchTerm || filtreElection !== "all"
+                    ? "Essayez de modifier vos filtres de recherche"
+                    : "Commencez par ajouter un nouveau candidat"}
+                </p>
+              </div>
+              {searchTerm || filtreElection !== "all" ? (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setFiltreElection("all");
+                  }}
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  Réinitialiser les filtres
+                </button>
+              ) : (
+                <button
+                  onClick={openCreateModal}
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Ajouter un candidat
+                </button>
+              )}
+            </div>
           </div>
         )}
 
         {/* Modal Création/Édition */}
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2 className="modal-title">
-                  {modalMode === "create" ? "Ajouter un candidat" : "Modifier le candidat"}
-                </h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X size={24} />
-                </button>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn"
+            onClick={() => setShowModal(false)}
+          >
+            <div
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-slideUp"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] px-6 py-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <Award className="text-white" size={24} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">
+                        {modalMode === "create" ? "Ajouter un candidat" : "Modifier le candidat"}
+                      </h2>
+                      <p className="text-blue-100 text-sm">
+                        {modalMode === "create"
+                          ? "Enregistrez un nouveau candidat dans le système"
+                          : "Modifiez les informations du candidat"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body">
+              <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="px-6 py-6 space-y-6">
+                  {/* Info Banner */}
+                  {modalMode === "create" && (
+                    <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 flex gap-3">
+                      <Info className="text-blue-600 flex-shrink-0" size={20} />
+                      <div className="text-sm">
+                        <p className="font-semibold text-blue-900 mb-1">Ajout d'un candidat</p>
+                        <p className="text-blue-700">
+                          Le candidat sera visible sur le bulletin de vote une fois l'élection
+                          publiée.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Élection */}
-                  <div className="form-group">
-                    <label className="form-label">Élection *</label>
-                    <select
-                      name="election_id"
-                      className="input-field"
-                      value={formData.election_id}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Sélectionner une élection</option>
-                      {electionsDisponibles.map((election) => (
-                        <option key={election.id} value={election.id}>
-                          {election.titre}
-                        </option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Élection <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Award className="text-gray-400" size={20} />
+                      </div>
+                      <select
+                        name="election_id"
+                        className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
+                        value={formData.election_id}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Sélectionner une élection</option>
+                        {electionsDisponibles.map((election) => (
+                          <option key={election.id} value={election.id}>
+                            {election.titre}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Sélectionnez l'élection à laquelle le candidat participe
+                    </p>
                   </div>
 
-                  {/* Nom */}
-                  <div className="form-group">
-                    <label className="form-label">Nom complet *</label>
-                    <input
-                      type="text"
-                      name="nom"
-                      className="input-field"
-                      value={formData.nom}
-                      onChange={handleInputChange}
-                      placeholder="Ex: DOHOU Ercias Audrey"
-                      required
-                    />
+                  {/* Nom complet */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nom complet <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <UserCircle className="text-gray-400" size={20} />
+                      </div>
+                      <input
+                        type="text"
+                        name="nom"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white"
+                        value={formData.nom}
+                        onChange={handleInputChange}
+                        placeholder="Ex: DOHOU Ercias Audrey"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Nom complet du candidat tel qu'il apparaîtra sur le bulletin
+                    </p>
                   </div>
 
                   {/* Photo */}
-                  <div className="form-group">
-                    <label className="form-label">Photo du candidat</label>
-                    <div className="flex items-center gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Photo du candidat
+                    </label>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       {photoPreview && (
-                        <img
-                          src={photoPreview}
-                          alt="Aperçu"
-                          className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-                        />
+                        <div className="relative group">
+                          <img
+                            src={photoPreview}
+                            alt="Aperçu"
+                            className="w-24 h-24 rounded-xl object-cover border-2 border-gray-200 shadow-md"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-xl transition-all flex items-center justify-center">
+                            <Image
+                              className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                              size={24}
+                            />
+                          </div>
+                        </div>
                       )}
-                      <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                        <Upload size={20} className="text-gray-400" />
-                        <span className="text-sm text-gray-600">
+                      <label className="flex-1 flex flex-col items-center justify-center gap-2 px-6 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                        <Upload size={28} className="text-gray-400" />
+                        <span className="text-sm font-medium text-gray-700">
                           {photoPreview ? "Changer la photo" : "Télécharger une photo"}
                         </span>
+                        <span className="text-xs text-gray-500">JPG, PNG (max 2MB)</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -363,52 +613,89 @@ function Candidats() {
                         />
                       </label>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Format recommandé: JPG, PNG (max 2MB)
+                    <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Une photo professionnelle améliore la présentation du candidat
                     </p>
                   </div>
 
-                  {/* Programme */}
-                  <div className="form-group">
-                    <label className="form-label">Programme électoral *</label>
-                    <textarea
-                      name="programme"
-                      className="input-field"
-                      value={formData.programme}
-                      onChange={handleInputChange}
-                      placeholder="Décrivez le programme et les objectifs du candidat..."
-                      rows="5"
-                      required
-                    />
+                  {/* Programme électoral */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Programme électoral <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute top-3 left-3 pointer-events-none">
+                        <FileText className="text-gray-400" size={20} />
+                      </div>
+                      <textarea
+                        name="programme"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white resize-none"
+                        value={formData.programme}
+                        onChange={handleInputChange}
+                        placeholder="Décrivez le programme et les objectifs du candidat...&#10;&#10;Exemples:&#10;• Amélioration des infrastructures&#10;• Programmes sociaux et culturels&#10;• Engagement pour la transparence"
+                        rows="6"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Décrivez les engagements et objectifs principaux (min. 50 caractères)
+                    </p>
                   </div>
 
                   {/* Ordre d'affichage */}
-                  <div className="form-group">
-                    <label className="form-label">Ordre d'affichage *</label>
-                    <input
-                      type="number"
-                      name="ordre_affichage"
-                      className="input-field"
-                      value={formData.ordre_affichage}
-                      onChange={handleInputChange}
-                      min="1"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Définit l'ordre d'apparition sur le bulletin de vote
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Ordre d'affichage <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Hash className="text-gray-400" size={20} />
+                      </div>
+                      <input
+                        type="number"
+                        name="ordre_affichage"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white"
+                        value={formData.ordre_affichage}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="99"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Position du candidat sur le bulletin de vote (1 = premier)
                     </p>
+                  </div>
+
+                  {/* Note importante */}
+                  <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 flex gap-3">
+                    <AlertCircle className="text-amber-600 flex-shrink-0" size={18} />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-semibold mb-1">Ordre d'affichage</p>
+                      <p>
+                        Les candidats avec le même ordre d'affichage seront triés alphabétiquement.
+                        Assurez-vous d'attribuer des numéros différents si l'ordre est important.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="modal-footer">
+                {/* Footer */}
+                <div className="bg-gray-50 px-6 py-4 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end border-t">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="btn-secondary"
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-all"
                   >
                     Annuler
                   </button>
-                  <button type="submit" className="btn-primary">
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] text-white rounded-lg font-semibold hover:from-[#152d47] hover:to-[#1e3a5f] transition-all shadow-lg hover:shadow-xl"
+                  >
                     {modalMode === "create" ? "Créer le candidat" : "Enregistrer les modifications"}
                   </button>
                 </div>

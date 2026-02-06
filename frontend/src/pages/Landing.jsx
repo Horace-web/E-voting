@@ -17,7 +17,7 @@ import { useAuth } from "../auth/AuthContext";
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role } = useAuth();
   const [activeLink, setActiveLink] = useState("top");
 
   // Navigation vers les sections de la landing page (scroll)
@@ -92,7 +92,7 @@ const Landing = () => {
             {isAuthenticated ? (
               <button
                 className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-[#1e3a5f] text-white rounded-lg font-semibold hover:bg-[#152d47] transition-all"
-                onClick={() => navigate("/electeur")}
+                onClick={() => navigate(role === "admin" ? "/admin" : "/electeur")}
               >
                 Mon espace
               </button>
@@ -131,42 +131,51 @@ const Landing = () => {
             >
               Voir les scrutins <ChevronRight size={20} />
             </button>
-            <button
-              className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-white text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all border-2 border-gray-200"
-              onClick={() => navigate("/login")}
-            >
-              Se connecter
-            </button>
+            {isAuthenticated ? (
+              <button
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-white text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all border-2 border-gray-200"
+                onClick={() => navigate(role === "admin" ? "/admin" : "/electeur")}
+              >
+                Mon espace
+              </button>
+            ) : (
+              <button
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-white text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all border-2 border-gray-200"
+                onClick={() => navigate("/login")}
+              >
+                Se connecter
+              </button>
+            )}
           </div>
         </div>
       </section>
 
       {/* Stats band */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-gradient-to-br from-[#1e3a5f] to-[#16304d]">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1e3a5f] mb-2">5000+</div>
-              <div className="text-sm md:text-base text-gray-600">Votants inscrits</div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">5000+</div>
+              <div className="text-sm md:text-base text-blue-100">Votants inscrits</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1e3a5f] mb-2">50+</div>
-              <div className="text-sm md:text-base text-gray-600">Scrutins réalisés</div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">50+</div>
+              <div className="text-sm md:text-base text-blue-100">Scrutins réalisés</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1e3a5f] mb-2">99.9%</div>
-              <div className="text-sm md:text-base text-gray-600">Disponibilité</div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">99.9%</div>
+              <div className="text-sm md:text-base text-blue-100">Disponibilité</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1e3a5f] mb-2">100%</div>
-              <div className="text-sm md:text-base text-gray-600">Anonymat garanti</div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">100%</div>
+              <div className="text-sm md:text-base text-blue-100">Anonymat garanti</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-12 md:py-20 px-4">
+      <section className="py-12 md:py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
             Pourquoi choisir E-Vote ?
@@ -218,12 +227,15 @@ const Landing = () => {
       </section>
 
       {/* How it works */}
-      <section id="process" className="py-12 md:py-20 px-4 bg-white">
+      <section
+        id="process"
+        className="py-12 md:py-20 px-4 bg-gradient-to-br from-[#1e3a5f] to-[#16304d] text-white"
+      >
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-white mb-4">
             Comment ça marche ?
           </h2>
-          <p className="text-lg md:text-xl text-gray-600 text-center mb-12">
+          <p className="text-lg md:text-xl text-blue-100 text-center mb-12">
             Un processus simple et sécurisé en 3 étapes
           </p>
           <div className="grid md:grid-cols-3 gap-8">
@@ -270,24 +282,33 @@ const Landing = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-[#1e3a5f] to-[#16304d] text-white">
+      <section className="py-12 md:py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Prêt à participer ?</h2>
-          <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Prêt à participer ?</h2>
+          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Connectez-vous avec votre adresse email institutionnelle pour accéder aux scrutins qui
             vous concernent et exercer votre droit de vote.
           </p>
-          <button
-            className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl"
-            onClick={() => navigate("/login")}
-          >
-            Se connecter maintenant <ChevronRight size={20} />
-          </button>
+          {isAuthenticated ? (
+            <button
+              className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-[#1e3a5f] text-white rounded-lg font-semibold hover:bg-[#16304d] transition-all shadow-lg hover:shadow-xl"
+              onClick={() => navigate(role === "admin" ? "/admin" : "/electeur")}
+            >
+              Mon espace <ChevronRight size={20} />
+            </button>
+          ) : (
+            <button
+              className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-4 bg-[#1e3a5f] text-white rounded-lg font-semibold hover:bg-[#16304d] transition-all shadow-lg hover:shadow-xl"
+              onClick={() => navigate("/login")}
+            >
+              Se connecter maintenant <ChevronRight size={20} />
+            </button>
+          )}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12 px-4">
+      <footer className="bg-gradient-to-br from-[#1e3a5f] to-[#16304d] text-gray-300 py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>

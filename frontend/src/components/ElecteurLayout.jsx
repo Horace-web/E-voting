@@ -10,7 +10,6 @@ import {
   LogOut,
   User,
   Bell,
-  Home,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import LogoIcon from "./LogoIcon";
@@ -100,17 +99,6 @@ const ElecteurLayout = ({ children }) => {
             );
           })}
         </nav>
-
-        {/* Lien vers l'accueil */}
-        <div className="px-4 mt-4">
-          <Link
-            to="/"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-white/50 hover:bg-white/5 hover:text-white/80 transition-all border border-white/10"
-          >
-            <Home size={18} />
-            <span className="text-sm">Retour à l'accueil</span>
-          </Link>
-        </div>
 
         {/* User Info & Logout */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-black/20">
