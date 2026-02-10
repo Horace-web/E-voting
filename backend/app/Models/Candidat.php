@@ -5,22 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class Vote extends Model
+class Candidat extends Model
 {
     use HasUuids;
 
     protected $fillable = [
         'election_id',
-        'candidat_id',
-        'hash_anonyme',
+        'nom',
+        'photo',
+        'programme',
     ];
 
-    public $timestamps = false;
-
-    protected $dates = ['created_at'];
-
     /**
-     * Relation : vote pour une élection
+     * Relation : candidat appartient à une élection
      */
     public function election()
     {
@@ -28,10 +25,10 @@ class Vote extends Model
     }
 
     /**
-     * Relation : vote pour un candidat
+     * Relation : votes reçus par le candidat
      */
-    public function candidat()
+    public function votes()
     {
-        return $this->belongsTo(Candidat::class);
+        return $this->hasMany(Vote::class);
     }
 }

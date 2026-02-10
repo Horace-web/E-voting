@@ -1,38 +1,30 @@
 <?php
 
-$allowedOrigins = [];
+$env = env('APP_ENV', 'production');
 
-// Environnement de développement
-if (app()->environment('local', 'development')) {
-    $allowedOrigins = [
+$allowedOrigins = match ($env) {
+    'local', 'development' => [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
-    ];
-}
-
-// Environnement de staging
-if (app()->environment('staging')) {
-    $allowedOrigins = [
+    ],
+    'staging' => [
         'https://staging.votresite.com',
         'https://staging-frontend.votresite.com',
-    ];
-}
-
-// Environnement de production
-if (app()->environment('production')) {
-    $allowedOrigins = [
+    ],
+    'production' => [
         'https://votresite.com',
         'https://www.votresite.com',
-    ];
-}
+    ],
+    default => [],
+};
 
 return [
+
     'paths' => [
         'api/*',
         'sanctum/csrf-cookie',
-        
     ],
 
     'allowed_methods' => ['*'],
