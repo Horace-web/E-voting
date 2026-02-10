@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ElectionController;
+use App\Http\Controllers\Api\CandidatController;
 
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
@@ -51,4 +53,30 @@ Route::middleware(['protected', 'role:AUDITOR'])->group(function () {
 // ========================================
 Route::middleware(['protected', 'role:ADMIN,AUDITOR'])->group(function () {
     // Futures routes (ex: consultation logs)
+});
+
+//lister les élections actives
+Route::get('/elections', [ElectionController::class, 'index']);
+
+//Détails d'une élection
+Route::get('/elections/{id}', [ElectionController::class, 'show']);
+
+//Créer une élection (admin)
+Route::middleware('auth:sanctum' , 'role:ADMIN')->group(function () {
+    Route::post('/elections', [ElectionController::class, 'store']);
+});
+
+//Ajouter un candidat à une élection (admin)
+Route::middleware('auth:sanctum' , 'role:ADMIN')->group(function () {
+    Route::post('/elections/{election_id}/candidats', [CandidatController::class, 'store']);
+});
+
+//Publier une élection (admin)
+Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
+    Route::post('/elections/{id}/publier', [ElectionController::class, 'publier']);
+});
+
+//Cloturer une élection (admin)
+Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
+    Route::post('/elections/{id}/cloturer', [ElectionController::class, 'cloturer']);
 });

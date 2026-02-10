@@ -14,8 +14,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->dateTime('date_debut');
             $table->dateTime('date_fin');
-            $table->enum('statut', ['en_preparation', 'active', 'cloturee'])
-                  ->default('en_preparation');
+            $table->enum('statut', ['Brouillon', 'Publiée', 'EnCours', 'Clôturée'])
+                    ->default('Brouillon');
             $table->uuid('created_by'); // admin qui l'a créée
             $table->timestamps();
 

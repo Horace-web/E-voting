@@ -55,13 +55,40 @@ class Election extends Model
         return $this->hasMany(Vote::class);
     }
 
-    /**
-     * Scope : élections actives
+
+        // Scope pour élections brouillon
+    public function scopeBrouillon($query)
+    {
+        return $query->where('statut', 'Brouillon');
+    }
+
+    // Scope pour élections publiées (visibles mais pas encore ouvertes)
+    public function scopePubliee($query)
+    {
+        return $query->where('statut', 'Publiée');
+    }
+
+    // Scope pour élections en cours
+    public function scopeEnCours($query)
+    {
+        return $query->where('statut', 'EnCours')
+                    ->where('date_debut', '<=', now())
+                    ->where('date_fin', '>=', now());
+    }
+
+    // Scope pour élections clôturées
+    public function scopeCloturee($query)
+    {
+        return $query->where('statut', 'Clôturée');
+    }
+
+    /*
+     ** Scope pour élections ACTIVES (statut EnCours + dates valides)
      */
     public function scopeActive($query)
     {
-        return $query->where('statut', 'active')
-                     ->where('date_debut', '<=', now())
-                     ->where('date_fin', '>=', now());
+        return $query->where('statut', 'EnCours')
+                    ->where('date_debut', '<=', now())
+                    ->where('date_fin', '>=', now());
     }
 }

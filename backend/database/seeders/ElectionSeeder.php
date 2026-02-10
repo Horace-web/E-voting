@@ -27,7 +27,7 @@ class ElectionSeeder extends Seeder
             'description' => 'Élection pour désigner le délégué de la promotion L3 Informatique',
             'date_debut' => now()->subDays(1),
             'date_fin' => now()->addDays(7),
-            'statut' => 'active',
+            'statut' => 'EnCours',
             'created_by' => $admin->id,
         ]);
 
@@ -55,7 +55,7 @@ class ElectionSeeder extends Seeder
             'description' => 'Élection du nouveau bureau des étudiants',
             'date_debut' => now()->addDays(10),
             'date_fin' => now()->addDays(17),
-            'statut' => 'en_preparation',
+            'statut' => 'Brouillon',
             'created_by' => $admin->id,
         ]);
 
