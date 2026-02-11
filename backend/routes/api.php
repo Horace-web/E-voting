@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ElectionController;
 use App\Http\Controllers\Api\CandidatController;
+use App\Http\Controllers\Api\RoleController;
 
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
@@ -15,7 +16,7 @@ use App\Http\Controllers\Api\CandidatController;
 
 Route::post('/auth/verify-account', [AuthController::class, 'verifyAccount']);
 Route::post('/auth/login', [AuthController::class, 'login']);
-
+Route::get('/roles', [RoleController::class, 'index'])->name('api.roles.index');
 // ========================================
 // ROUTES PROTÉGÉES (connexion requise)
 // ========================================
