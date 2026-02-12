@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Shield, CheckCircle } from "lucide-react";
 import Header from "../components/Header";
 import { useAuth } from "../auth/AuthContext";
@@ -7,6 +8,7 @@ import config from "../config/app.config";
 
 const Login = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,9 +26,8 @@ const Login = () => {
 
     if (!password.trim()) {
       newErrors.password = "Le mot de passe est requis";
-    } else if (password.length < 6) {
-      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
     }
+    // Note: La validation de complexité du mot de passe se fait côté backend selon le guide
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -51,7 +52,7 @@ const Login = () => {
         await new Promise((resolve) => setTimeout(resolve, 1500));
         console.log("[MOCK] Connexion:", email);
 
-        // Simuler données utilisateur
+        // Simuler donnÃ©es utilisateur
         userData = {
           id: 1,
           firstName: "Jean",
@@ -59,13 +60,23 @@ const Login = () => {
           email: email,
         };
 
-        // Simuler : si email contient "admin", c'est un admin, sinon électeur
+        // Simuler : si email contient "admin", c'est un admin, sinon Ã©lecteur
         role = email.includes("admin") ? "admin" : "voter";
       } else {
         // Appel API réel
         const response = await authService.login(email, password);
+        console.log("========================================");
+        console.log("RÉPONSE BACKEND:", response);
+        console.log("User:", response.user);
+        console.log("Role reçu:", response.user.role);
+        console.log("========================================");
         userData = response.user;
-        role = response.user.role || "voter";
+
+        // Normaliser le rôle selon le guide Postman (ADMIN, VOTER, AUDITOR)
+        let roleRaw = response.user.role || "voter";
+        role = roleRaw.toUpperCase(); // Garder en majuscules comme dans le guide
+
+        console.log("Role final (normalisé):", role);
       }
 
       login(userData, role);
@@ -74,25 +85,51 @@ const Login = () => {
       const redirectPath = sessionStorage.getItem("redirectAfterLogin");
       sessionStorage.removeItem("redirectAfterLogin");
 
-      // Redirection selon le rôle
-      if (role === "admin") {
-        window.location.href = "/admin";
-      } else if (redirectPath && redirectPath.startsWith("/electeur")) {
-        window.location.href = redirectPath;
+      // Redirection selon le guide Postman
+      console.log("REDIRECTION - Role:", role);
+      if (role === "ADMIN") {
+        console.log("→ /admin/dashboard");
+        navigate("/admin/dashboard");
+      } else if (role === "VOTER") {
+        console.log("→ /elections");
+        navigate("/elections");
+      } else if (role === "AUDITOR") {
+        console.log("→ /audit");
+        navigate("/audit");
       } else {
-        window.location.href = "/electeur";
+        console.log("→ /login (défaut)");
+        navigate("/login");
       }
     } catch (error) {
       console.error("Erreur connexion:", error);
 
-      if (error.response?.status === 403) {
+      // Gestion des erreurs selon le guide Postman
+      if (error.response?.status === 401) {
         setErrors({
-          general:
-            "Votre compte n'est pas encore activé. Veuillez confirmer votre inscription via le lien envoyé par email.",
+          general: "Identifiants incorrects",
         });
-      } else if (error.response?.status === 401) {
+      } else if (error.response?.status === 403) {
         setErrors({
-          general: "Email ou mot de passe incorrect",
+          general: "Compte non activé ou désactivé",
+        });
+      } else if (error.response?.status === 429) {
+        setErrors({
+          general: "Trop de tentatives. Veuillez attendre 15 minutes avant de réessayer.",
+        });
+      } else if (error.response?.status === 422) {
+        // Afficher les erreurs de validation par champ
+        const data = error.response.data;
+        const fieldErrors = {};
+        
+        if (data.errors) {
+          Object.keys(data.errors).forEach(field => {
+            fieldErrors[field] = data.errors[field][0]; // Première erreur par champ
+          });
+        }
+        
+        setErrors({
+          general: data.message || "Erreur de validation",
+          ...fieldErrors,
         });
       } else {
         setErrors({
@@ -114,32 +151,34 @@ const Login = () => {
         <div className="grid md:grid-cols-2 gap-8 items-center">
           {/* Left Section - Info */}
           <div className="space-y-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Accédez à vos scrutins</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              AccÃ©dez Ã  vos scrutins
+            </h1>
             <p className="text-xl text-gray-600">
-              Connectez-vous en toute sécurité avec votre email et mot de passe reçus par email.
+              Connectez-vous en toute sÃ©curitÃ© avec votre email et mot de passe reÃ§us par email.
             </p>
 
             <div className="space-y-4 pt-4">
-              {/* Authentification sécurisée */}
+              {/* Authentification sÃ©curisÃ©e */}
               <div className="flex gap-4">
                 <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Shield className="text-blue-600" size={28} />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    Authentification sécurisée
+                    Authentification sÃ©curisÃ©e
                   </h3>
-                  <p className="text-gray-600">Mot de passe haché avec bcrypt (cost=10)</p>
+                  <p className="text-gray-600">Mot de passe hachÃ© avec bcrypt (cost=10)</p>
                 </div>
               </div>
 
-              {/* Données protégées */}
+              {/* DonnÃ©es protÃ©gÃ©es */}
               <div className="flex gap-4">
                 <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Lock className="text-green-600" size={28} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Données protégées</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">DonnÃ©es protÃ©gÃ©es</h3>
                   <p className="text-gray-600">Chiffrement de bout en bout pour vos informations</p>
                 </div>
               </div>
@@ -154,7 +193,7 @@ const Login = () => {
                     Confirmation par email
                   </h3>
                   <p className="text-gray-600">
-                    Activation du compte après confirmation (lien valide 48h)
+                    Activation du compte aprÃ¨s confirmation (lien valide 48h)
                   </p>
                 </div>
               </div>
@@ -173,7 +212,7 @@ const Login = () => {
             {/* Title */}
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-2">Connexion</h2>
             <p className="text-center text-gray-600 mb-8">
-              Entrez vos identifiants reçus par email
+              Entrez vos identifiants reÃ§us par email
             </p>
 
             {/* Error Alert */}
@@ -251,6 +290,16 @@ const Login = () => {
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
               </div>
 
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm text-[#1e3a5f] hover:text-[#16304d] font-medium"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
@@ -274,9 +323,9 @@ const Login = () => {
             {/* Footer Info */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Vous n'avez pas encore confirmé votre inscription ?
+                Vous n'avez pas encore confirmÃ© votre inscription ?
               </p>
-              <p className="text-sm text-gray-600 mt-1">Vérifiez vos emails (lien valide 48h)</p>
+              <p className="text-sm text-gray-600 mt-1">VÃ©rifiez vos emails (lien valide 48h)</p>
             </div>
           </div>
         </div>

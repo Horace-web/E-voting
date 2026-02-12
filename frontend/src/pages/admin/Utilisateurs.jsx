@@ -27,73 +27,17 @@ import {
   BarChart3,
 } from "lucide-react";
 import userService from "../../services/user.service";
+import api from "../../api/axios";
 import config from "../../config/app.config";
 import "../../pages/Admin.css";
 
 function Utilisateurs() {
-  // Mock data pour les utilisateurs
-  const [utilisateurs, setUtilisateurs] = useState([
-    {
-      id: "1",
-      nom: "ODOUNLAMI Horace",
-      email: "horace.odounlami@universite.bj",
-      role: "admin",
-      statut: "actif",
-      created_at: "2026-01-15T10:30:00",
-      last_login: "2026-02-02T08:15:00",
-      nb_votes: 0,
-    },
-    {
-      id: "2",
-      nom: "DOHOU Ercias Audrey",
-      email: "ercias.dohou@universite.bj",
-      role: "voter",
-      statut: "actif",
-      created_at: "2026-01-20T14:20:00",
-      last_login: "2026-02-01T16:45:00",
-      nb_votes: 2,
-    },
-    {
-      id: "3",
-      nom: "HOUNDETON Jeffry",
-      email: "jeffry.houndeton@universite.bj",
-      role: "voter",
-      statut: "actif",
-      created_at: "2026-01-20T14:25:00",
-      last_login: "2026-02-01T12:30:00",
-      nb_votes: 1,
-    },
-    {
-      id: "4",
-      nom: "SOGOE Bryan",
-      email: "bryan.sogoe@universite.bj",
-      role: "voter",
-      statut: "actif",
-      created_at: "2026-01-20T14:30:00",
-      last_login: "2026-01-28T09:20:00",
-      nb_votes: 1,
-    },
-    {
-      id: "5",
-      nom: "ADJOVI Marie",
-      email: "marie.adjovi@universite.bj",
-      role: "auditor",
-      statut: "actif",
-      created_at: "2026-01-18T11:00:00",
-      last_login: "2026-02-01T18:00:00",
-      nb_votes: 0,
-    },
-    {
-      id: "6",
-      nom: "KOUASSI Paul",
-      email: "paul.kouassi@universite.bj",
-      role: "voter",
-      statut: "inactif",
-      created_at: "2026-01-22T09:15:00",
-      last_login: null,
-      nb_votes: 0,
-    },
-  ]);
+  const [utilisateurs, setUtilisateurs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [roles, setRoles] = useState([]);
 
   const [filtreRole, setFiltreRole] = useState("all");
   const [filtreStatut, setFiltreStatut] = useState("all");
@@ -106,35 +50,110 @@ function Utilisateurs() {
   const [formData, setFormData] = useState({
     nom: "",
     email: "",
-    role: "voter",
-    statut: "actif",
+    role_id: "",
   });
 
-  // Rôles disponibles
-  const roles = [
-    { value: "admin", label: "Administrateur", color: "bg-purple-100 text-purple-700" },
-    { value: "voter", label: "Électeur", color: "bg-blue-100 text-blue-700" },
-    { value: "auditor", label: "Auditeur", color: "bg-green-100 text-green-700" },
-  ];
+  // Charger les rôles et utilisateurs au montage
+  useEffect(() => {
+    loadRoles();
+    loadUsers();
+  }, []);
+
+  const loadRoles = async () => {
+    try {
+      const response = await api.get("/roles");
+      const rolesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
+
+      // Mapper vers le format attendu
+      const mappedRoles = rolesData.map((role) => ({
+        id: role.id,
+        value: role.code?.toLowerCase() || role.value,
+        label: role.nom || role.label,
+        color: getRoleColor(role.code || role.value),
+      }));
+
+      setRoles(mappedRoles);
+    } catch (error) {
+      console.warn("API /api/roles non disponible, utilisation des IDs hardcodés");
+      // ⚠️ IMPORTANT: Remplacez ces UUIDs par les vrais IDs de votre table 'roles'
+      // Pour trouver les vrais IDs, exécutez: SELECT id, code FROM roles;
+      setRoles([
+        {
+          id: "2663d911-9966-4268-845d-0aaf03f7745a", // UUID du rôle ADMIN
+          value: "admin",
+          label: "Administrateur",
+          color: "bg-purple-100 text-purple-700",
+        },
+        {
+          id: "23dd4542-7186-4429-b504-50b1927a1530", // UUID du rôle Électeur
+          value: "voter",
+          label: "Électeur",
+          color: "bg-blue-100 text-blue-700",
+        },
+        {
+          id: "e37ad6cd-d8b3-4ab5-9be7-9b6cc0300ac8", // UUID du rôle Auditeur
+          value: "auditor",
+          label: "Auditeur",
+          color: "bg-green-100 text-green-700",
+        },
+      ]);
+    }
+  };
+
+  const getRoleColor = (roleCode) => {
+    const colors = {
+      ADMIN: "bg-purple-100 text-purple-700",
+      VOTER: "bg-blue-100 text-blue-700",
+      AUDITOR: "bg-green-100 text-green-700",
+      admin: "bg-purple-100 text-purple-700",
+      voter: "bg-blue-100 text-blue-700",
+      auditor: "bg-green-100 text-green-700",
+    };
+    return colors[roleCode] || "bg-gray-100 text-gray-700";
+  };
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await userService.getAll();
+      // userService.getAll() retourne déjà response.data
+      const usersData = Array.isArray(response) ? response : response.data || [];
+      setUtilisateurs(usersData);
+    } catch (error) {
+      console.warn("Erreur chargement utilisateurs:", error);
+      setErrorMessage("Impossible de charger les utilisateurs");
+      setUtilisateurs([]); // S'assurer que c'est un tableau vide en cas d'erreur
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrage des utilisateurs
-  const utilisateursFiltres = utilisateurs.filter((user) => {
-    const matchRole = filtreRole === "all" || user.role === filtreRole;
-    const matchStatut = filtreStatut === "all" || user.statut === filtreStatut;
-    const matchSearch =
-      user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchRole && matchStatut && matchSearch;
-  });
+  const utilisateursFiltres = Array.isArray(utilisateurs)
+    ? utilisateurs.filter((user) => {
+        const matchRole = filtreRole === "all" || user.role === filtreRole;
+        const matchStatut = filtreStatut === "all" || user.statut === filtreStatut;
+        const matchSearch =
+          user.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchRole && matchStatut && matchSearch;
+      })
+    : [];
 
   // Statistiques
   const stats = {
-    total: utilisateurs.length,
-    actifs: utilisateurs.filter((u) => u.statut === "actif").length,
-    inactifs: utilisateurs.filter((u) => u.statut === "inactif").length,
-    admins: utilisateurs.filter((u) => u.role === "admin").length,
-    voters: utilisateurs.filter((u) => u.role === "voter").length,
-    auditors: utilisateurs.filter((u) => u.role === "auditor").length,
+    total: Array.isArray(utilisateurs) ? utilisateurs.length : 0,
+    actifs: Array.isArray(utilisateurs)
+      ? utilisateurs.filter((u) => u.statut === "actif").length
+      : 0,
+    inactifs: Array.isArray(utilisateurs)
+      ? utilisateurs.filter((u) => u.statut === "inactif").length
+      : 0,
+    admins: Array.isArray(utilisateurs) ? utilisateurs.filter((u) => u.role === "admin").length : 0,
+    voters: Array.isArray(utilisateurs) ? utilisateurs.filter((u) => u.role === "voter").length : 0,
+    auditors: Array.isArray(utilisateurs)
+      ? utilisateurs.filter((u) => u.role === "auditor").length
+      : 0,
   };
 
   // Gestion du formulaire
@@ -151,10 +170,11 @@ function Utilisateurs() {
     setFormData({
       nom: "",
       email: "",
-      role: "voter",
-      statut: "actif",
+      role_id: "",
     });
     setSelectedUser(null);
+    setSuccessMessage("");
+    setErrorMessage("");
     setShowModal(true);
   };
 
@@ -170,25 +190,55 @@ function Utilisateurs() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSuccessMessage("");
+    setErrorMessage("");
 
-    if (modalMode === "create") {
-      const nouvelUtilisateur = {
-        id: Date.now().toString(),
-        ...formData,
-        created_at: new Date().toISOString(),
-        last_login: null,
-        nb_votes: 0,
-      };
-      setUtilisateurs([...utilisateurs, nouvelUtilisateur]);
-    } else {
-      setUtilisateurs(
-        utilisateurs.map((u) => (u.id === selectedUser.id ? { ...u, ...formData } : u))
-      );
+    try {
+      if (modalMode === "create") {
+        // Création d'un nouvel utilisateur
+        await userService.create({
+          nom: formData.nom,
+          email: formData.email,
+          role_id: formData.role_id,
+        });
+
+        setSuccessMessage(
+          `Utilisateur créé avec succès ! Un email de confirmation a été envoyé à ${formData.email}. L'utilisateur doit cliquer sur le lien de confirmation (valide 48h) pour activer son compte.`
+        );
+
+        // Recharger la liste
+        await loadUsers();
+
+        // Fermer le modal après 3 secondes
+        setTimeout(() => {
+          setShowModal(false);
+          setSuccessMessage("");
+        }, 3000);
+      } else {
+        // Édition (si implémentée)
+        await userService.update(selectedUser.id, formData);
+        setSuccessMessage("Utilisateur mis à jour avec succès !");
+        await loadUsers();
+        setTimeout(() => {
+          setShowModal(false);
+          setSuccessMessage("");
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Erreur création utilisateur:", error);
+      if (error.response?.status === 409) {
+        setErrorMessage("Cet email est déjà utilisé");
+      } else {
+        setErrorMessage(
+          error.response?.data?.message || "Erreur lors de la création de l'utilisateur"
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setShowModal(false);
   };
 
   const handleDelete = (id) => {
@@ -324,7 +374,7 @@ function Utilisateurs() {
             <div className="text-sm font-medium text-gray-600 mb-1">Total utilisateurs</div>
             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-purple-500 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -334,7 +384,7 @@ function Utilisateurs() {
             <div className="text-sm font-medium text-gray-600 mb-1">Administrateurs</div>
             <div className="text-2xl font-bold text-purple-600">{stats.admins}</div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -344,7 +394,7 @@ function Utilisateurs() {
             <div className="text-sm font-medium text-gray-600 mb-1">Électeurs</div>
             <div className="text-2xl font-bold text-blue-600">{stats.voters}</div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-500 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -354,7 +404,7 @@ function Utilisateurs() {
             <div className="text-sm font-medium text-gray-600 mb-1">Auditeurs</div>
             <div className="text-2xl font-bold text-green-600">{stats.auditors}</div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-500 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -404,8 +454,18 @@ function Utilisateurs() {
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -424,22 +484,34 @@ function Utilisateurs() {
                 <option value="inactif">Inactifs uniquement</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
           </div>
-          {(searchTerm || filtreRole !== 'all' || filtreStatut !== 'all') && (
+          {(searchTerm || filtreRole !== "all" || filtreStatut !== "all") && (
             <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <span className="text-sm text-blue-800">
-                <strong>{utilisateursFiltres.length}</strong> utilisateur{utilisateursFiltres.length > 1 ? 's' : ''} trouvé{utilisateursFiltres.length > 1 ? 's' : ''}
+                <strong>{utilisateursFiltres.length}</strong> utilisateur
+                {utilisateursFiltres.length > 1 ? "s" : ""} trouvé
+                {utilisateursFiltres.length > 1 ? "s" : ""}
               </span>
               <button
                 onClick={() => {
-                  setSearchTerm('');
-                  setFiltreRole('all');
-                  setFiltreStatut('all');
+                  setSearchTerm("");
+                  setFiltreRole("all");
+                  setFiltreStatut("all");
                 }}
                 className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
               >
@@ -515,8 +587,8 @@ function Utilisateurs() {
                 {utilisateursFiltres.map((user, index) => {
                   const roleBadge = getRoleBadge(user.role);
                   return (
-                    <tr 
-                      key={user.id} 
+                    <tr
+                      key={user.id}
                       className="hover:bg-blue-50/30 transition-colors group"
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
@@ -546,10 +618,12 @@ function Utilisateurs() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1.5">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm ${roleBadge.color}`}>
-                            {user.role === 'admin' && <Shield size={12} />}
-                            {user.role === 'electeur' && <User size={12} />}
-                            {user.role === 'auditeur' && <Eye size={12} />}
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm ${roleBadge.color}`}
+                          >
+                            {user.role === "admin" && <Shield size={12} />}
+                            {user.role === "electeur" && <User size={12} />}
+                            {user.role === "auditeur" && <Eye size={12} />}
                             {roleBadge.label}
                           </span>
                         </div>
@@ -588,14 +662,20 @@ function Utilisateurs() {
                             className="group/btn p-2.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:shadow-md"
                             title="Modifier l'utilisateur"
                           >
-                            <Edit2 size={18} className="group-hover/btn:scale-110 transition-transform" />
+                            <Edit2
+                              size={18}
+                              className="group-hover/btn:scale-110 transition-transform"
+                            />
                           </button>
                           <button
                             onClick={() => handleDelete(user.id)}
                             className="group/btn p-2.5 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:shadow-md"
                             title="Supprimer l'utilisateur"
                           >
-                            <Trash2 size={18} className="group-hover/btn:scale-110 transition-transform" />
+                            <Trash2
+                              size={18}
+                              className="group-hover/btn:scale-110 transition-transform"
+                            />
                           </button>
                         </div>
                       </td>
@@ -615,17 +695,17 @@ function Utilisateurs() {
                 <div>
                   <p className="text-gray-900 font-semibold text-lg">Aucun utilisateur trouvé</p>
                   <p className="text-gray-500 text-sm mt-1">
-                    {searchTerm || filtreRole !== 'all' || filtreStatut !== 'all'
+                    {searchTerm || filtreRole !== "all" || filtreStatut !== "all"
                       ? "Essayez de modifier vos filtres de recherche"
                       : "Commencez par créer un nouvel utilisateur"}
                   </p>
                 </div>
-                {(searchTerm || filtreRole !== 'all' || filtreStatut !== 'all') && (
+                {(searchTerm || filtreRole !== "all" || filtreStatut !== "all") && (
                   <button
                     onClick={() => {
-                      setSearchTerm('');
-                      setFiltreRole('all');
-                      setFiltreStatut('all');
+                      setSearchTerm("");
+                      setFiltreRole("all");
+                      setFiltreStatut("all");
                     }}
                     className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
@@ -639,11 +719,11 @@ function Utilisateurs() {
 
         {/* Modal Création/Édition */}
         {showModal && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn"
             onClick={() => setShowModal(false)}
           >
-            <div 
+            <div
               className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slideUp"
               onClick={(e) => e.stopPropagation()}
             >
@@ -659,8 +739,8 @@ function Utilisateurs() {
                         {modalMode === "create" ? "Nouvel utilisateur" : "Modifier l'utilisateur"}
                       </h2>
                       <p className="text-blue-100 text-sm">
-                        {modalMode === "create" 
-                          ? "Ajoutez un nouvel utilisateur à la plateforme" 
+                        {modalMode === "create"
+                          ? "Ajoutez un nouvel utilisateur à la plateforme"
                           : "Modifiez les informations de l'utilisateur"}
                       </p>
                     </div>
@@ -676,18 +756,51 @@ function Utilisateurs() {
 
               <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-140px)]">
                 <div className="px-6 py-6 space-y-6">
-                  
+                  {/* Messages de succès et d'erreur */}
+                  {successMessage && (
+                    <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4 flex gap-3">
+                      <CheckCircle2 className="text-green-600 flex-shrink-0" size={20} />
+                      <div className="text-sm">
+                        <p className="font-semibold text-green-900 mb-1">
+                          Utilisateur créé avec succès !
+                        </p>
+                        <p className="text-green-700">{successMessage}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {errorMessage && (
+                    <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 flex gap-3">
+                      <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
+                      <div className="text-sm">
+                        <p className="font-semibold text-red-900 mb-1">Erreur</p>
+                        <p className="text-red-700">{errorMessage}</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Info Banner */}
                   {modalMode === "create" && (
                     <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 flex gap-3">
                       <Info className="text-blue-600 flex-shrink-0" size={20} />
                       <div className="text-sm">
                         <p className="font-semibold text-blue-900 mb-1">
-                          Création automatique du compte
+                          📧 Workflow de création (selon note.markdown)
                         </p>
-                        <p className="text-blue-700">
-                          Un email de bienvenue avec les instructions de connexion sera envoyé à l'utilisateur.
-                        </p>
+                        <ul className="text-blue-700 space-y-1 list-disc list-inside">
+                          <li>
+                            Un <strong>mot de passe aléatoire</strong> (12 caractères) sera généré
+                          </li>
+                          <li>
+                            L'utilisateur recevra un <strong>email de confirmation</strong> avec un
+                            lien (valide 48h)
+                          </li>
+                          <li>
+                            Après confirmation, il recevra ses{" "}
+                            <strong>identifiants de connexion</strong>
+                          </li>
+                          <li>Le compte sera activé (statut: Inactif → Actif)</li>
+                        </ul>
                       </div>
                     </div>
                   )}
@@ -743,8 +856,7 @@ function Utilisateurs() {
                   </div>
 
                   {/* Grid pour Rôle et Statut */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    
+                  <div className="grid grid-cols-1 gap-6">
                     {/* Rôle */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -755,63 +867,56 @@ function Utilisateurs() {
                           <Shield className="text-gray-400" size={20} />
                         </div>
                         <select
-                          name="role"
+                          name="role_id"
                           className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
-                          value={formData.role}
+                          value={formData.role_id}
                           onChange={handleInputChange}
                           required
                         >
+                          <option value="">Sélectionnez un rôle</option>
                           {roles.map((role) => (
-                            <option key={role.value} value={role.value}>
+                            <option key={role.id} value={role.id}>
                               {role.label}
                             </option>
                           ))}
                         </select>
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            />
                           </svg>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Statut */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Statut <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <CheckCircle2 className="text-gray-400" size={20} />
-                        </div>
-                        <select
-                          name="statut"
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-all bg-white appearance-none cursor-pointer"
-                          value={formData.statut}
-                          onChange={handleInputChange}
-                          required
-                        >
-                          <option value="actif">Actif</option>
-                          <option value="inactif">Inactif</option>
-                        </select>
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
-                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Le statut sera automatiquement défini sur "Inactif" jusqu'à la confirmation
+                        par email
+                      </p>
                     </div>
                   </div>
 
                   {/* Descriptions des rôles */}
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2.5">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">Description des rôles</p>
-                    
+                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                      Description des rôles
+                    </p>
+
                     <div className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0"></div>
                       <div className="text-sm">
                         <span className="font-semibold text-gray-900">Administrateur :</span>
-                        <span className="text-gray-600"> Gestion complète du système (élections, utilisateurs, résultats)</span>
+                        <span className="text-gray-600">
+                          {" "}
+                          Gestion complète du système (élections, utilisateurs, résultats)
+                        </span>
                       </div>
                     </div>
 
@@ -827,7 +932,10 @@ function Utilisateurs() {
                       <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></div>
                       <div className="text-sm">
                         <span className="font-semibold text-gray-900">Auditeur :</span>
-                        <span className="text-gray-600"> Consultation des logs et résultats, sans modification</span>
+                        <span className="text-gray-600">
+                          {" "}
+                          Consultation des logs et résultats, sans modification
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -836,7 +944,8 @@ function Utilisateurs() {
                   <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 flex gap-3">
                     <AlertCircle className="text-amber-600 flex-shrink-0" size={18} />
                     <p className="text-sm text-amber-800">
-                      Les utilisateurs avec le statut <strong>"Inactif"</strong> ne pourront pas se connecter à la plateforme.
+                      Les utilisateurs avec le statut <strong>"Inactif"</strong> ne pourront pas se
+                      connecter à la plateforme.
                     </p>
                   </div>
                 </div>
@@ -846,17 +955,26 @@ function Utilisateurs() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-all"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Annuler
                   </button>
-                  <button 
-                    type="submit" 
-                    className="px-6 py-2.5 bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] text-white rounded-lg font-semibold hover:from-[#152d47] hover:to-[#1e3a5f] transition-all shadow-lg hover:shadow-xl"
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 bg-gradient-to-r from-[#1e3a5f] to-[#2a4a73] text-white rounded-lg font-semibold hover:from-[#152d47] hover:to-[#1e3a5f] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {modalMode === "create"
-                      ? "Créer l'utilisateur"
-                      : "Enregistrer les modifications"}
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>{modalMode === "create" ? "Création..." : "Enregistrement..."}</span>
+                      </>
+                    ) : modalMode === "create" ? (
+                      "Créer l'utilisateur"
+                    ) : (
+                      "Enregistrer les modifications"
+                    )}
                   </button>
                 </div>
               </form>

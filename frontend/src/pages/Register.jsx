@@ -10,8 +10,10 @@ import {
   ArrowRight,
   Check,
   X,
+  Mail,
 } from "lucide-react";
 import Header from "../components/Header";
+import userService from "../services/user.service";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -26,6 +28,8 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Validation des critères du mot de passe
   const passwordCriteria = useMemo(() => {
@@ -90,7 +94,7 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Marquer tous les champs comme touchés
@@ -102,10 +106,62 @@ const Register = () => {
       confirmPassword: true,
     });
 
-    if (validateForm()) {
-      console.log("Register submitted:", formData);
-      // Rediriger vers la page de connexion après inscription
-      navigate("/login");
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+    setSuccessMessage("");
+
+    try {
+      // Appel API pour créer l'utilisateur
+      const response = await userService.create({
+        nom: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        // Note: Le mot de passe ne sera défini que lors de la confirmation du compte
+        // Le backend génère un mot de passe temporaire et envoie le lien de confirmation
+      });
+
+      console.log("Utilisateur créé:", response);
+
+      // Afficher le message de succès
+      setSuccessMessage(
+        "Compte créé avec succès ! Un email de confirmation a été envoyé à " +
+          formData.email +
+          ". Veuillez vérifier votre boîte de réception (valide 48h)."
+      );
+
+      // Réinitialiser le formulaire
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setTouched({});
+
+      // Rediriger vers login après 5 secondes
+      setTimeout(() => {
+        navigate("/login");
+      }, 5000);
+    } catch (error) {
+      console.error("Erreur inscription:", error);
+
+      if (error.response?.status === 409 || error.response?.status === 422) {
+        setErrors({
+          email: "Cet email est déjà utilisé",
+        });
+      } else {
+        setErrors({
+          general:
+            error.response?.data?.message ||
+            "Erreur lors de la création du compte. Veuillez réessayer.",
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -177,6 +233,25 @@ const Register = () => {
 
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Créer un compte</h2>
           <p className="text-gray-600 mb-6">Inscrivez-vous pour participer aux scrutins</p>
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+              <CheckCircle2 className="flex-shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="font-medium">Compte créé !</p>
+                <p className="text-sm">{successMessage}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {errors.general && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+              <X className="flex-shrink-0 mt-0.5" size={20} />
+              <p className="text-sm">{errors.general}</p>
+            </div>
+          )}
 
           <button
             type="button"
@@ -454,11 +529,20 @@ const Register = () => {
 
             <button
               type="submit"
-              disabled={!isPasswordValid || !passwordsMatch}
+              disabled={!isPasswordValid || !passwordsMatch || isLoading}
               className="w-full flex items-center justify-center gap-2 bg-[#1e3a5f] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#16304d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Créer mon compte
-              <ArrowRight size={16} />
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Création en cours...
+                </>
+              ) : (
+                <>
+                  Créer mon compte
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </form>
 

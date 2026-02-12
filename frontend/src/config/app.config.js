@@ -6,7 +6,10 @@
 // Mode de l'application
 export const config = {
   // Activer le mode mock (données simulées sans backend)
-  useMockData: import.meta.env.VITE_USE_MOCK === "true" || true, // Par défaut true pour le dev
+  // Si VITE_USE_MOCK n'est pas défini → true (mode dev par défaut)
+  // Si VITE_USE_MOCK="false" → false (mode production avec vraie API)
+  // Si VITE_USE_MOCK="true" → true (mode mock explicite)
+  useMockData: import.meta.env.VITE_USE_MOCK !== "false",
 
   // URL de l'API
   apiUrl: import.meta.env.VITE_API_URL || "http://localhost:8000/api",

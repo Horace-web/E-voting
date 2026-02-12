@@ -145,7 +145,7 @@ function Resultats() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucun résultat disponible</h3>
             <p className="text-gray-600">Les résultats des élections clôturées apparaîtront ici</p>
           </div>
-        ) : (
+        ) : </div>
           <>
             <div className="admin-header">
               <div>
@@ -217,7 +217,7 @@ function Resultats() {
               </div>
             </div>
 
-            {/* Stats rapides */}
+        {/* Stats rapides */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
@@ -283,211 +283,210 @@ function Resultats() {
               </div>
             </div>
 
-            {/* Résultats détaillés */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Graphique à barres */}
-              <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-bold flex items-center gap-2">
-                    <BarChart3 size={20} className="text-blue-600" />
-                    Répartition des votes
-                  </h2>
-                  <button
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all font-medium"
-                  >
-                    {showDetails ? <EyeOff size={16} /> : <Eye size={16} />}
-                    {showDetails ? "Masquer détails" : "Afficher détails"}
-                  </button>
-                </div>
+        {/* Résultats détaillés */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Graphique à barres */}
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <BarChart3 size={20} className="text-blue-600" />
+                Répartition des votes
+              </h2>
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-all font-medium"
+              >
+                {showDetails ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showDetails ? "Masquer détails" : "Afficher détails"}
+              </button>
+            </div>
 
-                <div className="space-y-6">
-                  {(selectedElection?.candidats || [])
-                    .sort((a, b) => b.votes - a.votes)
-                    .map((candidat, index) => {
-                      const pourcentage = totalVotes > 0 ? ((candidat.votes / totalVotes) * 100).toFixed(1) : "0";
-                      const isWinner = gagnant && candidat.id === gagnant.id;
+            <div className="space-y-6">
+              {(selectedElection?.candidats || [])
+                .sort((a, b) => b.votes - a.votes)
+                .map((candidat, index) => {
+                  const pourcentage = totalVotes > 0 ? ((candidat.votes / totalVotes) * 100).toFixed(1) : "0";
+                  const isWinner = gagnant && candidat.id === gagnant.id;
 
-                      return (
-                        <div key={candidat.id} className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <img
-                                  src={candidat.photo}
-                                  alt={candidat.nom}
-                                  className={`w-12 h-12 rounded-full object-cover shadow-md ${isWinner ? "ring-4 ring-amber-400" : "ring-2 ring-gray-200"}`}
-                                />
-                                {isWinner && (
-                                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
-                                    <Trophy size={12} className="text-white" />
-                                  </div>
-                                )}
+                  return (
+                    <div key={candidat.id} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <img
+                              src={candidat.photo}
+                              alt={candidat.nom}
+                              className={`w-12 h-12 rounded-full object-cover shadow-md ${isWinner ? "ring-4 ring-amber-400" : "ring-2 ring-gray-200"}`}
+                            />
+                            {isWinner && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
+                                <Trophy size={12} className="text-white" />
                               </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-gray-900">{candidat.nom}</span>
-                                  {index === 0 && <Trophy size={16} className="text-amber-500" />}
-                                </div>
-                                {showDetails && (
-                                  <span className="text-xs text-gray-500 font-medium">
-                                    Position #{index + 1}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <span className="font-bold text-xl text-gray-900">{pourcentage}%</span>
-                              {showDetails && (
-                                <span className="text-sm text-gray-500 block font-medium">
-                                  {candidat.votes?.toLocaleString() || '0'} votes
-                                </span>
-                              )}
-                            </div>
+                            )}
                           </div>
-
-                          <div className="h-10 bg-gray-100 rounded-lg overflow-hidden shadow-inner">
-                            <div
-                              className={`h-full ${barColors[index % barColors.length]} rounded-lg transition-all duration-700 flex items-center justify-end pr-4 shadow-sm`}
-                              style={{ width: `${pourcentage}%` }}
-                            >
-                              {parseInt(pourcentage) > 5 && (
-                                <span className="text-white text-sm font-bold">{pourcentage}%</span>
-                              )}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">{candidat.nom}</span>
+                              {index === 0 && <Trophy size={16} className="text-amber-500" />}
                             </div>
+                            {showDetails && (
+                              <span className="text-xs text-gray-500 font-medium">
+                                Position #{index + 1}
+                              </span>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
-                </div>
-              </div>
-
-              {/* Panneau latéral */}
-              <div className="space-y-6">
-                {/* Infos élection */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="font-bold mb-4 flex items-center gap-2">
-                    <Calendar size={18} className="text-[#1e3a5f]" />
-                    Informations
-                  </h3>
-
-                  <div className="space-y-3 text-sm">
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-500 text-xs block mb-1">Titre</span>
-                      <span className="font-semibold text-gray-900">{selectedElection?.titre || 'Sans titre'}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-gray-700 font-medium">Clôturé le</span>
-                      <span className="font-bold text-blue-700">
-                        {selectedElection?.date_cloture ? new Date(selectedElection.date_cloture).toLocaleDateString("fr-FR") : 'Non défini'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                      <span className="text-gray-700 font-medium">Candidats</span>
-                      <span className="font-bold text-purple-700">
-                        {selectedElection?.candidats?.length || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                      <span className="text-gray-700 font-medium">Abstention</span>
-                      <span className="font-bold text-red-700">
-                        {selectedElection?.total_electeurs && selectedElection?.total_votes
-                          ? (selectedElection.total_electeurs - selectedElection.total_votes).toLocaleString()
-                          : '0'}{" "}
-                        ({(100 - parseFloat(tauxParticipation)).toFixed(1)}%)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Statut publication */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="font-bold mb-4">Statut de publication</h3>
-
-                  <div
-                    className={`p-4 rounded-xl mb-4 border-2 ${
-                      selectedElection?.publie
-                        ? "bg-green-50 border-green-200"
-                        : "bg-gray-50 border-gray-200"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {selectedElection?.publie ? (
-                        <>
-                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <Eye className="text-green-600" size={20} />
-                          </div>
-                          <div>
-                            <p className="font-bold text-green-800">Résultats publics</p>
-                            <p className="text-sm text-green-600">Visibles par tous les électeurs</p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <EyeOff className="text-gray-600" size={20} />
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-800">Résultats privés</p>
-                            <p className="text-sm text-gray-600">Visibles uniquement par les admins</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => selectedElection && togglePublication(selectedElection.id)}
-                    disabled={!selectedElection}
-                    className={`w-full py-3 px-4 rounded-lg font-bold transition-all shadow-sm hover:shadow-md ${
-                      selectedElection?.publie
-                        ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    } ${!selectedElection ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {selectedElection?.publie ? "Retirer la publication" : "Publier les résultats"}
-                  </button>
-                </div>
-
-                {/* Actions */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="font-bold mb-4">Actions</h3>
-
-                  <div className="space-y-2">
-                    <button 
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-blue-50 transition-all font-medium text-gray-700 border border-gray-200 hover:border-blue-300"
-                      disabled={!selectedElection}
-                    >
-                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Share2 size={16} className="text-blue-600" />
+                        <div className="text-right">
+                          <span className="font-bold text-xl text-gray-900">{pourcentage}%</span>
+                          {showDetails && (
+                            <span className="text-sm text-gray-500 block font-medium">
+                              {candidat.votes?.toLocaleString() || '0'} votes
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <span>Partager les résultats</span>
-                    </button>
-                    <button
-                      onClick={exportPDF}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-purple-50 transition-all font-medium text-gray-700 border border-gray-200 hover:border-purple-300"
-                      disabled={!selectedElection}
-                    >
-                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <FileText size={16} className="text-purple-600" />
+
+                      <div className="h-10 bg-gray-100 rounded-lg overflow-hidden shadow-inner">
+                        <div
+                          className={`h-full ${barColors[index % barColors.length]} rounded-lg transition-all duration-700 flex items-center justify-end pr-4 shadow-sm`}
+                          style={{ width: `${pourcentage}%` }}
+                        >
+                          {parseFloat(pourcentage) > 15 && (
+                            <span className="text-white text-sm font-bold">{pourcentage}%</span>
+                          )}
+                        </div>
                       </div>
-                      <span>Générer rapport PDF</span>
-                    </button>
-                    <button
-                      onClick={exportCSV}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-green-50 transition-all font-medium text-gray-700 border border-gray-200 hover:border-green-300"
-                      disabled={!selectedElection}
-                    >
-                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Download size={16} className="text-green-600" />
-                      </div>
-                      <span>Télécharger données CSV</span>
-                    </button>
-                  </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Panneau latéral */}
+          <div className="space-y-6">
+            {/* Infos élection */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-bold mb-4 flex items-center gap-2">
+                <Calendar size={18} className="text-[#1e3a5f]" />
+                Informations
+              </h3>
+
+              <div className="space-y-3 text-sm">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-500 text-xs block mb-1">Titre</span>
+                  <span className="font-semibold text-gray-900">{selectedElection?.titre || 'Sans titre'}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="text-gray-700 font-medium">Clôturé le</span>
+                  <span className="font-bold text-blue-700">
+                    {selectedElection?.date_cloture ? new Date(selectedElection.date_cloture).toLocaleDateString("fr-FR") : 'Non défini'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                  <span className="text-gray-700 font-medium">Candidats</span>
+                  <span className="font-bold text-purple-700">
+                    {selectedElection?.candidats?.length || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <span className="text-gray-700 font-medium">Abstention</span>
+                  <span className="font-bold text-red-700">
+                    {selectedElection?.total_electeurs && selectedElection?.total_votes
+                      ? (selectedElection.total_electeurs - selectedElection.total_votes).toLocaleString()
+                      : '0'}{" "}
+                    ({(100 - parseFloat(tauxParticipation)).toFixed(1)}%)
+                  </span>
                 </div>
               </div>
             </div>
-          </>
+
+            {/* Statut publication */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-bold mb-4">Statut de publication</h3>
+
+              <div
+                className={`p-4 rounded-xl mb-4 border-2 ${
+                  selectedElection?.publie
+                    ? "bg-green-50 border-green-200"
+                    : "bg-gray-50 border-gray-200"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {selectedElection?.publie ? (
+                    <>
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Eye className="text-green-600" size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-green-800">Résultats publics</p>
+                        <p className="text-sm text-green-600">Visibles par tous les électeurs</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <EyeOff className="text-gray-600" size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">Résultats privés</p>
+                        <p className="text-sm text-gray-600">Visibles uniquement par les admins</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={() => selectedElection && togglePublication(selectedElection.id)}
+                disabled={!selectedElection}
+                className={`w-full py-3 px-4 rounded-lg font-bold transition-all shadow-sm hover:shadow-md ${
+                  selectedElection?.publie
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                } ${!selectedElection ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {selectedElection?.publie ? "Retirer la publication" : "Publier les résultats"}
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-bold mb-4">Actions</h3>
+
+              <div className="space-y-2">
+                <button 
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-blue-50 transition-all font-medium text-gray-700 border border-gray-200 hover:border-blue-300"
+                  disabled={!selectedElection}
+                >
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Share2 size={16} className="text-blue-600" />
+                  </div>
+                  <span>Partager les résultats</span>
+                </button>
+                <button
+                  onClick={exportPDF}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-purple-50 transition-all font-medium text-gray-700 border border-gray-200 hover:border-purple-300"
+                  disabled={!selectedElection}
+                >
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <FileText size={16} className="text-purple-600" />
+                  </div>
+                  <span>Générer rapport PDF</span>
+                </button>
+                <button
+                  onClick={exportCSV}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-green-50 transition-all font-medium text-gray-700 border border-gray-200 hover:border-green-300"
+                  disabled={!selectedElection}
+                >
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Download size={16} className="text-green-600" />
+                  </div>
+                  <span>Télécharger données CSV</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         )}
       </div>
     </AdminLayout>

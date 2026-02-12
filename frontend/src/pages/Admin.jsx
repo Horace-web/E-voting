@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 import { useAuth } from "../auth/AuthContext";
+import electionService from "../services/election.service";
+import userService from "../services/user.service";
 import {
   Users,
   Vote,
@@ -26,6 +28,17 @@ import {
 const Admin = () => {
   const { user } = useAuth();
   const [activeTab] = useState("dashboard");
+  const [stats, setStats] = useState({
+    totalElections: 0,
+    activeElections: 0,
+    totalVoters: 0,
+    totalVotes: 0,
+    participationRate: 0,
+    pendingValidations: 0,
+  });
+  const [recentElections, setRecentElections] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Utilisateur par défaut pour le développement
   const currentUser = user || {
@@ -33,88 +46,64 @@ const Admin = () => {
     lastName: "System",
   };
 
-  // Mock data - sera remplacé par les vraies données du backend
-  const stats = {
-    totalElections: 12,
-    activeElections: 3,
-    totalVoters: 2547,
-    totalVotes: 1823,
-    participationRate: 71.6,
-    pendingValidations: 5,
-  };
+  // Charger les données depuis le backend
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
 
-  const recentElections = [
-    {
-      id: 1,
-      title: "Élection du Délégué de Classe L3 Info",
-      status: "En cours",
-      startDate: "2026-01-28",
-      endDate: "2026-02-05",
-      votes: 156,
-      totalVoters: 220,
-    },
-    {
-      id: 2,
-      title: "Bureau des Étudiants 2026",
-      status: "Publiée",
-      startDate: "2026-02-10",
-      endDate: "2026-02-15",
-      votes: 0,
-      totalVoters: 1200,
-    },
-    {
-      id: 3,
-      title: "Représentant Étudiant Conseil",
-      status: "Clôturée",
-      startDate: "2026-01-15",
-      endDate: "2026-01-22",
-      votes: 892,
-      totalVoters: 950,
-    },
-  ];
+        let elections = [];
+        let totalVoters = 0;
 
-  const recentActivities = [
-    {
-      id: 1,
-      user: "Jean Dupont",
-      action: "a voté à l'élection",
-      target: "Délégué de Classe L3 Info",
-      time: "Il y a 5 minutes",
-      type: "vote",
-    },
-    {
-      id: 2,
-      user: "Admin",
-      action: "a publié l'élection",
-      target: "Bureau des Étudiants 2026",
-      time: "Il y a 2 heures",
-      type: "admin",
-    },
-    {
-      id: 3,
-      user: "Marie Martin",
-      action: "a voté à l'élection",
-      target: "Délégué de Classe L3 Info",
-      time: "Il y a 3 heures",
-      type: "vote",
-    },
-    {
-      id: 4,
-      user: "Admin",
-      action: "a clôturé l'élection",
-      target: "Représentant Étudiant Conseil",
-      time: "Il y a 5 heures",
-      type: "admin",
-    },
-    {
-      id: 5,
-      user: "Pierre Lefebvre",
-      action: "s'est inscrit",
-      target: "Nouveau compte électeur",
-      time: "Il y a 6 heures",
-      type: "user",
-    },
-  ];
+        // Charger les élections (seulement les 3 dernières)
+        try {
+          const electionsResponse = await electionService.getAll({ limit: 3 });
+          elections = electionsResponse.data || [];
+          setRecentElections(elections);
+        } catch (error) {
+          console.warn(
+            "API /elections non disponible (404 - backend non implémenté):",
+            error.response?.status
+          );
+          // Garder elections = []
+        }
+
+        // Charger les utilisateurs pour le total
+        try {
+          const usersResponse = await userService.getAll({ limit: 1 });
+          totalVoters = usersResponse.total || 0;
+        } catch (error) {
+          console.warn(
+            "API /users non disponible (404 - backend non implémenté):",
+            error.response?.status
+          );
+          // Garder totalVoters = 0
+        }
+
+        // Calculer les stats avec les données disponibles
+        const totalElections = elections.length;
+        const activeElections = elections.filter(
+          (e) => e.statut === "En cours" || e.statut === "en_cours"
+        ).length;
+
+        setStats({
+          totalElections,
+          activeElections,
+          totalVoters,
+          totalVotes: 0, // Sera calculé avec l'API votes
+          participationRate: 0,
+          pendingValidations: 0,
+        });
+      } catch (error) {
+        console.error("Erreur critique chargement dashboard:", error);
+        // Garder les valeurs par défaut (0)
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
 
   const getStatusConfig = (status) => {
     switch (status) {

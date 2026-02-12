@@ -30,13 +30,17 @@ const authService = {
    * @param {string} token - Token de confirmation (64 caractères)
    * @returns {Promise} Données de confirmation
    */
-  confirmAccount: async (token) => {
-    const response = await api.get(API_ROUTES.AUTH.CONFIRM(token));
+  confirmAccount: async (token, password, passwordConfirmation) => {
+    const response = await api.post(API_ROUTES.AUTH.VERIFY_ACCOUNT, {
+      token,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
     return response.data;
   },
 
   /**
-   * Déconnexion
+   * Déconnexion selon le guide Postman
    * @returns {Promise}
    */
   logout: async () => {
@@ -45,7 +49,7 @@ const authService = {
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
     } finally {
-      // Nettoyer le localStorage dans tous les cas
+      // Nettoyer le localStorage selon le guide Postman
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("role");
@@ -78,6 +82,26 @@ const authService = {
    */
   resendConfirmationLink: async (email) => {
     const response = await api.post(API_ROUTES.AUTH.RESEND_CONFIRMATION, { email });
+    return response.data;
+  },
+
+  /**
+   * Demander un lien de réinitialisation de mot de passe
+   * @param {string} email
+   * @returns {Promise}
+   */
+  forgotPassword: async (email) => {
+    const response = await api.post(API_ROUTES.AUTH.FORGOT_PASSWORD, { email });
+    return response.data;
+  },
+
+  /**
+   * Réinitialiser le mot de passe via token
+   * @param {object} data
+   * @returns {Promise}
+   */
+  resetPassword: async (data) => {
+    const response = await api.post(API_ROUTES.AUTH.RESET_PASSWORD, data);
     return response.data;
   },
 

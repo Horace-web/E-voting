@@ -1,248 +1,79 @@
-/* ========== Page Layout ========== */
+/* Login Page Styles */
+
 .login-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f8fafc;
-}
-
-/* ========== Header ========== */
-.login-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 0 2rem;
-}
-
-.login-nav {
-  max-width: 1200px;
-  margin: 0 auto;
+  background-color: var(--bg);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 64px;
+  justify-content: center;
+  padding: 2rem 0;
 }
 
-.logo {
+.login-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1200px;
+  width: 100%;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  margin: 0 2rem;
+  min-height: 600px;
+}
+
+/* Left Section - Form */
+.login-form-section {
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-header .logo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 3rem;
 }
 
 .logo-icon {
-  width: 36px;
-  height: 36px;
-  background: #1e3a5f;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
+  font-size: 1.5rem;
 }
 
-.logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e3a5f;
-}
+/* removed lucide-react specific styling */
 
-.nav-links {
-  display: flex;
-  gap: 2rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-links a,
-.nav-links button {
-  color: #6b7280;
-  text-decoration: none;
-  font-weight: 500;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.nav-links a:hover,
-.nav-links button:hover {
-  color: #1e3a5f;
-}
-
-.btn-header {
-  background: #1e3a5f;
-  color: #ffffff;
-  padding: 0.6rem 1.25rem;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.btn-header:hover {
-  background: #16304d;
-}
-
-/* ========== Main Content ========== */
-.login-main {
+.login-content {
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 450px;
   margin: 0 auto;
-  padding: 4rem 2rem;
   width: 100%;
-  align-items: center;
 }
 
-/* ========== Info Section ========== */
-.login-info h1 {
-  font-size: 2.25rem;
+.login-title {
+  font-size: 2rem;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 1rem;
-  line-height: 1.2;
+  margin-bottom: 0.5rem;
 }
 
-.info-subtitle {
+.login-subtitle {
   font-size: 1rem;
   color: #6b7280;
-  line-height: 1.6;
   margin-bottom: 2rem;
 }
 
-.info-features {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.info-feature {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.feature-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(30, 58, 95, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1e3a5f;
-  flex-shrink: 0;
-}
-
-.feature-text h3 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 0.25rem 0;
-}
-
-.feature-text p {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* ========== Form Card ========== */
-.login-form-section {
-  display: flex;
-  justify-content: center;
-}
-
-.login-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 2.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 400px;
-}
-
-.card-icon {
-  width: 56px;
-  height: 56px;
-  background: #f3f4f6;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.25rem;
-  color: #1e3a5f;
-}
-
-.login-card h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  text-align: center;
-  margin: 0 0 0.5rem 0;
-}
-
-.card-subtitle {
-  font-size: 0.9rem;
-  color: #6b7280;
-  text-align: center;
-  margin: 0 0 1.5rem 0;
-}
-
-/* ========== Google Button ========== */
-.btn-google {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #1f2937;
-  cursor: pointer;
-}
-
-.btn-google:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-}
-
-/* ========== Divider ========== */
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 1.5rem 0;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #e5e7eb;
-}
-
-.divider span {
-  padding: 0 1rem;
-  font-size: 0.8rem;
-  color: #9ca3af;
-}
-
-/* ========== Form ========== */
+/* Form Styles */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group {
@@ -252,194 +83,425 @@
 }
 
 .form-group label {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #1f2937;
+  color: #374151;
 }
 
 .form-group input {
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
+  padding: 0.875rem 1rem;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
-  width: 100%;
-  box-sizing: border-box;
+  transition: all 0.3s;
+  background-color: white;
+  color: #1f2937;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #1e3a5f;
-  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+  border-color: #6b7280;
+  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
 }
 
 .form-group input::placeholder {
   color: #9ca3af;
 }
 
-/* Password Input */
-.password-input {
-  position: relative;
-}
-
-.password-input input {
-  padding-right: 3rem;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0;
-}
-
-.toggle-password:hover {
-  color: #1e3a5f;
-}
-
-/* Forgot Password */
-.forgot-password {
-  text-align: right;
-}
-
-.forgot-password a {
-  font-size: 0.875rem;
-  color: #1e3a5f;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.forgot-password a:hover {
-  text-decoration: underline;
-}
-
-/* Submit Button */
-.btn-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.5rem;
-  background: #6b7c93;
-  color: #ffffff;
+/* Continue Button */
+.btn-continue {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--primary);
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 0.5rem;
+  transition: all 0.3s;
 }
 
-.btn-submit:hover {
-  background: #1e3a5f;
+.btn-continue:hover {
+  background-color: #078f85;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(7, 143, 133, 0.3);
 }
 
-/* Register Link */
-.register-link {
+/* Admin Only */
+.admin-only {
   text-align: center;
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 1.5rem 0 0 0;
+  margin: 1.5rem 0;
 }
 
-.register-link a,
-.register-link .link-btn {
-  color: #1e3a5f;
-  text-decoration: none;
-  font-weight: 600;
+.admin-only p {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Social Login */
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.btn-google,
+.btn-microsoft {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-google {
+  color: #374151;
+}
+
+.btn-microsoft {
+  color: #374151;
+}
+
+.btn-google:hover,
+.btn-microsoft:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+  background-color: #ea4335;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.microsoft-icon {
+  font-size: 1.25rem;
+  color: #00a4ef;
+}
+
+/* Form Footer */
+.form-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  color: #6b7280;
   background: none;
   border: none;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.3s;
   cursor: pointer;
-  font-size: 0.875rem;
+  padding: 0;
 }
 
-.register-link a:hover,
-.register-link .link-btn:hover {
+/* removed lucide-react footer link icon styling */
+
+.footer-link:hover {
+  color: #4b5563;
   text-decoration: underline;
 }
 
-/* ========== Form Validation Styles ========== */
-.form-group input.input-error {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.02);
+.separator {
+  color: #d1d5db;
 }
 
-.form-group input.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.field-error {
-  color: #ef4444;
-  font-size: 0.8125rem;
-  margin-top: 8px;
+/* Right Section - Info */
+.login-info-section {
+  background: var(--primary);
+  padding: 3rem;
+  color: white;
   display: flex;
   align-items: center;
-  gap: 6px;
 }
 
-/* Button Loading State */
-.btn-submit:disabled {
-  background: #94a3b8;
-  cursor: not-allowed;
-  transform: none;
+.info-content {
+  width: 100%;
 }
 
-.btn-submit:disabled:hover {
-  background: #94a3b8;
-  transform: none;
+.info-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2.5rem;
 }
 
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+.info-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-icon-circle {
+  width: 40px;
+  height: 40px;
+  background-color: #000;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.20);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.info-icon-circle img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.info-item:hover .info-icon-circle {
+  background-color: #111;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.info-item:hover .info-icon-circle img {
+  transform: scale(1.06);
+  opacity: 1;
+}
+
+/* removed lucide-react circle icon styling */
+
+.info-text h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+/* Info Notice */
+.info-notice {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid white;
+}
+
+.info-notice h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.info-notice ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-notice li {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  position: relative;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+.info-notice li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+.info-notice strong {
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .login-container {
+    max-width: 1000px;
   }
 }
 
-/* ========== Responsive ========== */
-@media (max-width: 900px) {
-  .login-main {
+@media (max-width: 1024px) {
+  .login-container {
     grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 2rem 1rem;
+    max-width: 550px;
   }
 
-  .login-info {
-    text-align: center;
-  }
-
-  .info-features {
-    align-items: center;
-  }
-
-  .info-feature {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-@media (max-width: 600px) {
-  .nav-links {
+  .login-info-section {
     display: none;
   }
 
-  .login-card {
-    padding: 1.5rem;
+  .login-form-section {
+    padding: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-form-section {
+    padding: 2rem;
   }
 
-  .login-info h1 {
+  .login-header .logo {
+    margin-bottom: 2rem;
+  }
+
+  .login-title {
     font-size: 1.75rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .login-page {
+    padding: 1rem 0;
+  }
+
+  .login-container {
+    margin: 0 1rem;
+    min-height: auto;
+  }
+
+  .login-form-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .login-header .logo {
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .logo-icon {
+    font-size: 1.25rem;
+  }
+
+  /* removed lucide-react responsive logo icon styling */
+
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .login-form {
+    gap: 1.25rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-continue {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-google,
+  .btn-microsoft {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .social-login {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    margin: 0 0.75rem;
+    border-radius: 12px;
+  }
+
+  .login-form-section {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .login-header .logo {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .login-title {
+    font-size: 1.35rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .login-form {
+    gap: 1rem;
+  }
+
+  .form-group input {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-continue {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .footer-link {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-form-section {
+    padding: 1.25rem 1rem;
+  }
+
+  .login-title {
+    font-size: 1.25rem;
+  }
+
+  .btn-google,
+  .btn-microsoft {
+    font-size: 0.85rem;
+    padding: 0.65rem;
   }
 }

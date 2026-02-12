@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Vote,
@@ -18,6 +18,7 @@ import LogoIcon from "./LogoIcon";
 
 const AdminLayout = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -39,7 +40,7 @@ const AdminLayout = ({ children }) => {
 
   const handleLogout = () => {
     logout();
-    window.location.href = "/";
+    navigate("/");
   };
 
   const isActive = (path) => {

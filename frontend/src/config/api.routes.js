@@ -32,7 +32,7 @@ const API_ROUTES = {
      * Params: token (64 caractères)
      * Response: { success: boolean, email: string, password: string, message: string }
      */
-    CONFIRM: (token) => `/auth/confirm/${token}`,
+    VERIFY_ACCOUNT: "/auth/verify-account",
 
     /**
      * POST /api/auth/resend-confirmation
@@ -43,12 +43,12 @@ const API_ROUTES = {
     RESEND_CONFIRMATION: "/auth/resend-confirmation",
 
     /**
-     * GET /api/auth/profile
+     * GET /api/auth/me
      * Récupérer le profil de l'utilisateur connecté
      * Headers: Authorization: Bearer {token}
      * Response: { success: boolean, user: Object }
      */
-    PROFILE: "/auth/profile",
+    PROFILE: "/auth/me",
 
     /**
      * PUT /api/auth/profile
@@ -58,6 +58,22 @@ const API_ROUTES = {
      * Response: { success: boolean, user: Object }
      */
     UPDATE_PROFILE: "/auth/profile",
+
+    /**
+     * POST /api/auth/forgot-password
+     * Demander un lien de réinitialisation par email
+     * Body: { email: string }
+     * Response: { success: boolean, message: string }
+     */
+    FORGOT_PASSWORD: "/auth/forgot-password",
+
+    /**
+     * POST /api/auth/reset-password
+     * Réinitialiser le mot de passe via token
+     * Body: { token: string, password: string, password_confirmation: string }
+     * Response: { success: boolean, message: string }
+     */
+    RESET_PASSWORD: "/auth/reset-password",
   },
 
   // ============================================
@@ -97,7 +113,7 @@ const API_ROUTES = {
      * Body: { nom?: string, email?: string, role_id?: UUID, statut?: string }
      * Response: { success: boolean, user: Object }
      */
-    UPDATE: (id) => `/users/${id}`,
+    UPDATE: (id) => `/users/${id}`, 
 
     /**
      * DELETE /api/users/{id}

@@ -27,125 +27,32 @@ import config from "../../config/app.config";
 import "../../pages/Admin.css";
 
 function Audit() {
-  // Mock data pour les logs d'audit
-  const [logs] = useState([
-    {
-      id: "1",
-      action_type: "LOGIN",
-      description: "Connexion réussie",
-      user_name: "ODOUNLAMI Horace",
-      user_email: "horace.odounlami@universite.bj",
-      user_role: "admin",
-      ip_address: "192.168.1.45",
-      resultat: "SUCCESS",
-      created_at: "2026-02-03T08:15:32",
-    },
-    {
-      id: "2",
-      action_type: "CREATE_ELECTION",
-      description: 'Création de l\'élection "Bureau BDE 2026"',
-      user_name: "ODOUNLAMI Horace",
-      user_email: "horace.odounlami@universite.bj",
-      user_role: "admin",
-      ip_address: "192.168.1.45",
-      resultat: "SUCCESS",
-      created_at: "2026-02-03T08:22:15",
-    },
-    {
-      id: "3",
-      action_type: "VOTE",
-      description: 'Vote enregistré pour "Élection Présidentielle 2026"',
-      user_name: "DOHOU Ercias Audrey",
-      user_email: "ercias.dohou@universite.bj",
-      user_role: "voter",
-      ip_address: "192.168.1.102",
-      resultat: "SUCCESS",
-      created_at: "2026-02-02T14:35:48",
-    },
-    {
-      id: "4",
-      action_type: "VOTE",
-      description: 'Vote enregistré pour "Élection Présidentielle 2026"',
-      user_name: "HOUNDETON Jeffry",
-      user_email: "jeffry.houndeton@universite.bj",
-      user_role: "voter",
-      ip_address: "192.168.1.87",
-      resultat: "SUCCESS",
-      created_at: "2026-02-02T15:12:23",
-    },
-    {
-      id: "5",
-      action_type: "LOGIN_FAILED",
-      description: "Tentative de connexion échouée - Code OTP invalide",
-      user_name: "Inconnu",
-      user_email: "test@universite.bj",
-      user_role: "unknown",
-      ip_address: "192.168.1.201",
-      resultat: "FAILURE",
-      created_at: "2026-02-02T16:45:00",
-    },
-    {
-      id: "6",
-      action_type: "PUBLISH_ELECTION",
-      description: 'Publication de l\'élection "Conseil Étudiant 2026"',
-      user_name: "ODOUNLAMI Horace",
-      user_email: "horace.odounlami@universite.bj",
-      user_role: "admin",
-      ip_address: "192.168.1.45",
-      resultat: "SUCCESS",
-      created_at: "2026-02-02T10:30:00",
-    },
-    {
-      id: "7",
-      action_type: "CLOSE_ELECTION",
-      description: 'Clôture de l\'élection "Élection des Représentants"',
-      user_name: "ODOUNLAMI Horace",
-      user_email: "horace.odounlami@universite.bj",
-      user_role: "admin",
-      ip_address: "192.168.1.45",
-      resultat: "SUCCESS",
-      created_at: "2026-01-28T18:00:05",
-    },
-    {
-      id: "8",
-      action_type: "EXPORT_RESULTS",
-      description: 'Export PDF des résultats "Élection Présidentielle 2025"',
-      user_name: "ADJOVI Marie",
-      user_email: "marie.adjovi@universite.bj",
-      user_role: "auditor",
-      ip_address: "192.168.1.156",
-      resultat: "SUCCESS",
-      created_at: "2026-01-25T11:20:33",
-    },
-    {
-      id: "9",
-      action_type: "UPDATE_USER",
-      description: 'Modification du statut utilisateur "KOUASSI Paul" → Inactif',
-      user_name: "ODOUNLAMI Horace",
-      user_email: "horace.odounlami@universite.bj",
-      user_role: "admin",
-      ip_address: "192.168.1.45",
-      resultat: "SUCCESS",
-      created_at: "2026-01-22T09:45:12",
-    },
-    {
-      id: "10",
-      action_type: "LOGOUT",
-      description: "Déconnexion",
-      user_name: "SOGOE Bryan",
-      user_email: "bryan.sogoe@universite.bj",
-      user_role: "voter",
-      ip_address: "192.168.1.78",
-      resultat: "SUCCESS",
-      created_at: "2026-01-21T17:30:00",
-    },
-  ]);
-
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filtreAction, setFiltreAction] = useState("all");
   const [filtreResultat, setFiltreResultat] = useState("all");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
+
+  // Charger les logs depuis l'API
+  useEffect(() => {
+    loadLogs();
+  }, []);
+
+  const loadLogs = async () => {
+    try {
+      setLoading(true);
+      const response = await auditService.getAll();
+      const logsData = Array.isArray(response) ? response : (response.data || []);
+      setLogs(logsData);
+    } catch (error) {
+      console.warn("Erreur chargement logs d'audit:", error);
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Types d'actions
   const actionTypes = [

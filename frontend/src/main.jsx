@@ -4,6 +4,7 @@ import { AuthProvider } from "./auth/AuthContext.jsx";
 import AppThemeProvider from "./theme/ThemeProvider.jsx";
 import "./index.css";
 import App from "./App.jsx";
+import "./utils/debug.js"; // Charger les utilitaires de debug
 
 createRoot(document.getElementById("root")).render(
   <AppThemeProvider>

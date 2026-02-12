@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import authService from "../services/auth.service.js";
 
 const AuthContext = createContext(null);
 
@@ -14,23 +15,43 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState("visitor");
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Charger l'utilisateur depuis le localStorage au démarrage
+  // Validation au démarrage
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedRole = localStorage.getItem("role");
-
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setRole(storedRole || "voter");
-      } catch (error) {
-        console.error("Erreur lors du chargement de l'utilisateur:", error);
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
+    const initializeAuth = async () => {
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        setIsLoading(false);
+        setIsInitialized(true);
+        return;
       }
-    }
-    setIsLoading(false);
+
+      try {
+        const response = await authService.getProfile();
+        
+        if (response.success) {
+          const storedUser = localStorage.getItem("user");
+          const storedRole = localStorage.getItem("role");
+          
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+            setRole(storedRole || "voter");
+          }
+        } else {
+          localStorage.clear();
+        }
+      } catch (error) {
+        console.warn("Token invalide au démarrage:", error.response?.status);
+        localStorage.clear();
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (userData, userRole = "voter") => {
@@ -48,14 +69,33 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
+  // 🎯 Le return de chargement doit être ici
+  if (!isInitialized) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Chargement...
+      </div>
+    );
+  }
+
   const value = {
     user,
     role,
     isLoading,
     login,
     logout,
-    isAuthenticated: !!user,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

@@ -191,8 +191,8 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Sécurisé</h3>
               <p className="text-gray-600">
-                Authentification forte par OTP et chiffrement des données pour garantir l'intégrité
-                du vote.
+                Comptes créés par l'administration, activation par lien email et accès sécurisé
+                par mot de passe.
               </p>
             </article>
             <article className="bg-white p-6 md:p-8 rounded-2xl shadow-md hover:shadow-xl transition-shadow">
