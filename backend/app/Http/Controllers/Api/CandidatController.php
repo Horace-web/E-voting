@@ -9,6 +9,7 @@ use App\Models\Candidat;
 use App\Http\Requests\StoreCandidatRequest;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CandidatResource;
+use Illuminate\Support\Facades\Log;
 
 class CandidatController extends Controller
 {
@@ -18,22 +19,12 @@ class CandidatController extends Controller
     {
         $election = Election::findOrFail($election_id);
 
-        $photoPath = null;
-
-        // Gestion upload photo
-        if ($request->hasFile('photo')) {
-            // Stocker dans storage/app/public/candidats
-            $photoPath = $request->file('photo')->store('candidats', 'public');
-        }
-
         $candidat = Candidat::create([
             'election_id' => $election->id,
-            'nom'         => $request->nom,
-            'programme'   => $request->programme,
-            'photo'       => $photoPath,
+            'nom' => $request->nom,
+            'programme' => $request->programme,
+            'photo' => $request->photo_path, // ✅ Stocke le chemin
         ]);
-
-
 
         return response()->json([
             'success' => true,
@@ -43,8 +34,8 @@ class CandidatController extends Controller
                 'nom' => $candidat->nom,
                 'programme' => $candidat->programme,
                 'photo_url' => $candidat->photo
-                    ? asset('storage/' . $candidat->photo)
-                    : null, // ✅ URL complète pour le frontend
+                    ? asset('storage/' . $candidat->photo)  // ✅ URL complète
+                    : null,
             ]
         ], 201);
     }

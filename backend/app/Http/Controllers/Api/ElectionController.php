@@ -153,6 +153,7 @@ class ElectionController extends Controller
      */
     public function update(UpdateElectionRequest $request, $id)
     {
+
         $election = Election::findOrFail($id);
 
         // ✅ Vérification : modification interdite si élection déjà ouverte ou clôturée
@@ -176,12 +177,19 @@ class ElectionController extends Controller
             }
         }
 
-        $election->update($request->only([
+        $data = $request->only([
             'titre',
             'description',
             'date_debut',
             'date_fin',
-        ]));
+        ]);
+
+        $election->fill($data);
+
+        if ($election->isDirty()) {
+            $election->save();
+        }
+
 
         return response()->json([
             'success' => true,

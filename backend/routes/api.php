@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ElectionController;
 use App\Http\Controllers\Api\CandidatController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\UploadController;
 
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
@@ -57,19 +58,26 @@ Route::middleware(['protected', 'role:ADMIN,AUDITOR'])->group(function () {
 });
 
 //lister les élections actives
-Route::get('/elections', [ElectionController::class, 'index']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/elections', [ElectionController::class, 'index']);
+});
 
 //Détails d'une élection
-Route::get('/elections/{id}', [ElectionController::class, 'show']);
-
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/elections/{id}', [ElectionController::class, 'show']);
+});
 //Créer une élection (admin)
 Route::middleware('auth:sanctum' , 'role:ADMIN')->group(function () {
     Route::post('/elections', [ElectionController::class, 'store']);
+    Route::put('/elections/{id}', [ElectionController::class, 'update']);
+    Route::delete('/elections/{id}', [ElectionController::class, 'destroy']);
 });
 
 //Ajouter un candidat à une élection (admin)
 Route::middleware('auth:sanctum' , 'role:ADMIN')->group(function () {
     Route::post('/elections/{election_id}/candidats', [CandidatController::class, 'store']);
+    Route::post('/upload/photo', [UploadController::class, 'storePhoto']);
+
 });
 
 //Publier une élection (admin)
