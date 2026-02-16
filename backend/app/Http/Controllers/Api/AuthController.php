@@ -17,6 +17,7 @@ use App\Http\Requests\VerifyAccountRequest;
 use App\Models\EmailVerification;
 use Illuminate\Support\Facades\Hash;
 
+
 class AuthController extends Controller
 {
     /**
