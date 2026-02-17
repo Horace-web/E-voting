@@ -20,10 +20,11 @@ class VerifyAccountRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules()
-    {
-        return [
-            'token'    => 'required|string|size:64',
-            'password' => 'required|string|min:8|confirmed',
-        ];
-    }
+        {
+            return [
+                'token'             => 'required|string|size:64',
+                'password'          => 'required|string|min:8',
+                'confirm_password'  => 'required|string|same:password',
+            ];
+        }
 }
