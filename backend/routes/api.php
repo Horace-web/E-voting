@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ElectionController;
 use App\Http\Controllers\Api\CandidatController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UploadController;
+use App\Http\Controllers\Api\VoteController;
 
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
@@ -15,7 +16,6 @@ use App\Http\Controllers\Api\UploadController;
 Route::post('/auth/verify-account', [AuthController::class, 'verifyAccount']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/roles', [RoleController::class, 'index']);
-
 // ========================================
 // ROUTES PROTÉGÉES (connexion requise)
 // ========================================
@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Gestion utilisateurs
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
-        Route::get('/users/{id}', [UserController::class, 'show']); // ✅ Ajouté
+        Route::get('/users/{id}', [UserController::class, 'show']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
@@ -67,9 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ========================================
 
     Route::middleware('role:VOTER')->group(function () {
-        // Vote (à implémenter)
-        // Route::post('/vote', [VoteController::class, 'store']);
-        // Route::get('/mon-vote/{election_id}', [VoteController::class, 'checkVote']);
+        Route::post('/vote', [VoteController::class, 'store']);
+        Route::get('/mon-vote/{election_id}', [VoteController::class, 'checkVote']);
+
     });
 
     // ========================================

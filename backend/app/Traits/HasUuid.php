@@ -6,8 +6,10 @@ use Illuminate\Support\Str;
 
 trait HasUuid
 {
-    protected static function bootHasUuid()
+    protected static function boot()
     {
+        parent::boot(); // TRÈS IMPORTANT : Appelle le boot des autres traits
+
         static::creating(function ($model) {
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();

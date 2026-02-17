@@ -38,6 +38,13 @@ class UserController extends Controller
 
 public function store(StoreUserRequest $request)
     {
+        // Débogage temporaire
+    Log::info('Role ID reçu : ' . $request->role_id);
+
+    // Vérifier si le rôle existe
+    $roleExiste = \App\Models\Role::where('id', $request->role_id)->exists();
+    Log::info('Rôle existe : ' . ($roleExiste ? 'Oui' : 'Non'));
+
         DB::beginTransaction();
 
         try {
@@ -59,7 +66,7 @@ public function store(StoreUserRequest $request)
                 'expire_at'=> now()->addMinutes(30),
             ]);
 
-            // 3️⃣ Envoi email
+            // 3️⃣ Envoi email de vérification
             Mail::to($user->email)->send(
                 new AccountVerificationMail($user, $token)
             );
@@ -111,6 +118,16 @@ public function store(StoreUserRequest $request)
         return response()->json([
             'success' => true,
             'message' => 'Utilisateur désactivé'
+        ]);
+    }
+
+    public function show($id)
+    {
+        $user = User::with('role')->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $user
         ]);
     }
 }
