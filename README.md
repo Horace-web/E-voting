@@ -603,12 +603,14 @@ Ce projet a été développé dans le cadre d'un projet académique à **ESGIS (
 
 | Développeur | Rôle | Responsabilité | Contact |
 |-------------|------|----------------|---------|
-| **Horace** | Backend Lead | Module Vote, Anonymisation, Sécurité | [GitHub](https://github.com/Horace-web) |
-| **Audrey** | Backend Developer | Élections, Candidats, Middleware | - |
+| **Horace** | Backend Lead | Module Vote, Anonymisation, Sécurité , Élections, Candidats, Middleware  | [GitHub](https://github.com/Horace-web) |
+| **Audrey** | Backend Developer & Documentation | Réalisations des diagrammes de documentation et intégration de Swagger | 
+| **Jeffry** | Frontend Developer | Tout les interfaces du Front | 
+| **Bryan** | Backend Developer | Module Audit et Traçabilité | - |
 
 ### Encadrement
 
-- **Professeur** : [Nom du professeur]
+- **Professeur** : Faiwaz MARCOS
 - **Institution** : ESGIS Bénin
 - **Année académique** : 2025-2026
 
@@ -720,7 +722,7 @@ Pour toute question ou problème :
 
 <div align="center">
 
-**Développé avec ❤️ par (à venir )**
+**Développé avec ❤️ par Horace Odounlami & Ercias Audrey Dohou & Jeffry Houndeton & Bryan Sogoe**
 
 **ESGIS Bénin — 2026**
 
