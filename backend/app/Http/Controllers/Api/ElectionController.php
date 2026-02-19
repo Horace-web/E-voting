@@ -10,6 +10,7 @@ use App\Http\Requests\StoreElectionRequest;
 use App\Http\Requests\UpdateElectionRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ElectionController extends Controller
 {
@@ -80,6 +81,19 @@ class ElectionController extends Controller
      */
     public function store(StoreElectionRequest $request)
     {
+
+        Log::info('Store appelé', [
+        'date_debut' => $request->date_debut,
+        'date_fin'   => $request->date_fin,
+        'lte'        => Carbon::parse($request->date_fin)->lte(Carbon::parse($request->date_debut))
+    ]);
+
+    if (Carbon::parse($request->date_fin)->lte(Carbon::parse($request->date_debut))) {
+        return response()->json([
+            'success' => false,
+            'message' => 'La date de clôture doit être après la date d\'ouverture'
+        ], 422);
+    }
         // Validation supplémentaire : date_fin > date_debut
         if (Carbon::parse($request->date_fin)->lte(Carbon::parse($request->date_debut))) {
             return response()->json([
