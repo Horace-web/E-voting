@@ -90,3 +90,38 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::get('/elections/{id}/logs', [ElectionController::class, 'logs']);
     });
 });
+
+// Route log système
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/logs', [AuditController::class, 'index']);
+});
+
+// Route détails log
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/logs/{id}', [AuditController::class, 'show']);
+});
+
+// Route logs participations
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/participations', [AuditController::class, 'participations']);
+});
+
+// Route vérification intégrité élection
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/elections/{id}/integrity', [AuditController::class, 'checkIntegrity']);
+});
+
+// Route statistiques audit
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/stats', [AuditController::class, 'stats']);
+});
+
+// Route export logs
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/export/logs', [AuditController::class, 'exportLogs']);
+});
+
+// Route export rapport pdf
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/export/report/{election_id}', [AuditController::class, 'exportReport']);
+});

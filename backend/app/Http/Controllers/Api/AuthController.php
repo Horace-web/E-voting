@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\VerifyAccountRequest;
 use App\Models\EmailVerification;
 use Illuminate\Support\Facades\Hash;
+use App\Services\AuditService;
 
 
 class AuthController extends Controller
@@ -188,6 +189,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+
+        // ✅ LOG AUDIT AVANT suppression token
+        AuditService::logLogout($request->user());
+
+        // Supprimer le token actuel
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
@@ -288,6 +294,8 @@ public function login(Request $request)
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        AuditService::logLogin($user);
+
         return response()->json([
             'success' => true,
             'message' => 'Connexion réussie',
@@ -299,6 +307,8 @@ public function login(Request $request)
                 'role'  => $user->role->code,
             ]
         ], 200);
-    }
 
+
+    } 
+    
 }
