@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CandidatController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\VoteController;
+use App\Http\Controllers\Api\AuditController;
 
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
@@ -16,6 +17,8 @@ use App\Http\Controllers\Api\VoteController;
 Route::post('/auth/verify-account', [AuthController::class, 'verifyAccount']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/roles', [RoleController::class, 'index']);
+Route::post('/auth/forgot-password-otp', [AuthController::class, 'forgotPasswordOtp']);
+Route::post('/auth/verify-otp-reset-password', [AuthController::class, 'verifyOtpResetPassword']);
 // ========================================
 // ROUTES PROTÉGÉES (connexion requise)
 // ========================================

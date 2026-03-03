@@ -3,12 +3,16 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Log;
 
 class StoreUserRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
-        return true;
+        Log::info('StoreUserRequest authorize appelé');
+        return true; // Vérifiez que ça retourne bien true
     }
 
     public function rules(): array
@@ -33,4 +37,14 @@ class StoreUserRequest extends FormRequest
             'role_id.exists' => 'Le rôle spécifié n\'existe pas.',
         ];
     }
+
+    protected function failedValidation(Validator $validator)
+    {
+        Log::error('Échec validation', ['errors' => $validator->errors()]);
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 422));
+    }
+
 }

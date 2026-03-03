@@ -17,6 +17,9 @@ use App\Http\Requests\VerifyAccountRequest;
 use App\Models\EmailVerification;
 use Illuminate\Support\Facades\Hash;
 use App\Services\AuditService;
+use App\Http\Requests\ForgotPasswordOtpRequest;
+use App\Http\Requests\VerifyOtpResetPasswordRequest;
+use App\Mail\PasswordResetOtpMail;
 
 
 class AuthController extends Controller
@@ -67,10 +70,11 @@ class AuthController extends Controller
             $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
 
             CodeOtp::create([
-                'email' => $email,
-                'code' => $code,
+                'email'     => $email,
+                'code'      => $code,
+                'type'      => CodeOtp::TYPE_LOGIN,
                 'expire_at' => now()->addMinutes(10),
-                'utilise' => false,
+                'utilise'   => false,
             ]);
 
             Mail::to($email)->send(new OtpMail($email, $code));
@@ -109,6 +113,7 @@ class AuthController extends Controller
             try {
                 $otpRecord = CodeOtp::where('email', $email)
                     ->where('code', $code)
+                    ->where('type', CodeOtp::TYPE_LOGIN)  // ✅ Filtrer par type
                     ->where('utilise', false)
                     ->where('expire_at', '>', now())
                     ->first();
@@ -307,8 +312,132 @@ public function login(Request $request)
                 'role'  => $user->role->code,
             ]
         ], 200);
+    }
 
+    /**
+ * Demande de code OTP pour réinitialisation mot de passe
+ */
+public function forgotPasswordOtp(ForgotPasswordOtpRequest $request)
+{
+    DB::beginTransaction();
 
-    } 
-    
+    try {
+        $user = User::where('email', $request->email)->first();
+
+        // Vérifier que le compte est actif
+        if ($user->statut !== 'actif') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Compte désactivé'
+            ], 403);
+        }
+
+        // Supprimer les anciens codes expirés
+        CodeOtp::where('email', $request->email)
+            ->where('type', CodeOtp::TYPE_RESET_PASSWORD)
+            ->where('expire_at', '<', now())
+            ->delete();
+
+        // Générer un nouveau code
+        $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        CodeOtp::create([
+            'email'     => $request->email,
+            'code'      => $code,
+            'type'      => CodeOtp::TYPE_RESET_PASSWORD,
+            'expire_at' => now()->addMinutes(10),
+            'utilise'   => false,
+        ]);
+
+        // Envoyer l'email
+        Mail::to($request->email)->send(
+            new PasswordResetOtpMail($user, $code)
+        );
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Un code de vérification a été envoyé par email. Valide pendant 10 minutes.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        Log::error('Erreur forgot password OTP', [
+            'email' => $request->email,
+            'error' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de l\'envoi du code'
+        ], 500);
+    }
+}
+
+/**
+ * Vérifier OTP + Réinitialiser le mot de passe
+ */
+public function verifyOtpResetPassword(VerifyOtpResetPasswordRequest $request)
+{
+    DB::beginTransaction();
+
+    try {
+        // Vérifier le code OTP
+        $otpRecord = CodeOtp::where('email', $request->email)
+            ->where('code', $request->code)
+            ->where('type', CodeOtp::TYPE_RESET_PASSWORD)
+            ->where('utilise', false)
+            ->where('expire_at', '>', now())
+            ->first();
+
+        if (!$otpRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Code invalide ou expiré'
+            ], 401);
+        }
+
+        // Marquer le code comme utilisé
+        $otpRecord->update(['utilise' => true]);
+
+        // Récupérer l'utilisateur
+        $user = User::where('email', $request->email)->first();
+
+        // Mettre à jour le mot de passe
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Supprimer tous les codes OTP reset_password de cet user
+        CodeOtp::where('email', $request->email)
+            ->where('type', CodeOtp::TYPE_RESET_PASSWORD)
+            ->delete();
+
+        // Optionnel : Révoquer tous les tokens Sanctum (sécurité)
+        $user->tokens()->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        Log::error('Erreur verify OTP reset password', [
+            'email' => $request->email,
+            'error' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur serveur'
+        ], 500);
+    }
+
+}
 }

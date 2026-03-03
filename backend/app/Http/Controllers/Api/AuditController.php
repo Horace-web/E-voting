@@ -8,7 +8,9 @@ use App\Models\Participation;
 use App\Models\Election;
 use App\Models\Vote;
 use App\Models\User;
+use App\Models\AuditLog;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class AuditController extends Controller
 {
@@ -98,8 +100,8 @@ class AuditController extends Controller
         $is_coherent = ($participations_count === $votes_count);
 
         // Vérification doublons (normalement impossible grâce à UNIQUE)
-        $duplicates = \DB::table('participations')
-            ->select('user_id', \DB::raw('count(*) as total'))
+        $duplicates = DB::table('participations')
+            ->select('user_id', DB::raw('count(*) as total'))
             ->where('election_id', $election_id)
             ->groupBy('user_id')
             ->having('total', '>', 1)
@@ -123,7 +125,7 @@ class AuditController extends Controller
                 'duplicates' => $duplicates,
                 'votes_hors_periode' => $votes_hors_periode,
                 'integrity_status' => $is_coherent && $duplicates->isEmpty() && $votes_hors_periode === 0
-                    ? 'OK' 
+                    ? 'OK'
                     : 'ANOMALIE DÉTECTÉE'
             ]
         ]);
@@ -141,7 +143,7 @@ class AuditController extends Controller
         $logs_recent = AuditLog::recent(7)->count();
 
         // Top actions
-        $top_actions = AuditLog::select('action', \DB::raw('count(*) as total'))
+        $top_actions = AuditLog::select('action', DB::raw('count(*) as total'))
             ->groupBy('action')
             ->orderBy('total', 'desc')
             ->limit(10)
@@ -179,7 +181,7 @@ class AuditController extends Controller
 
         // Génération CSV
         $filename = 'audit_logs_' . now()->format('Y-m-d_His') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -238,8 +240,8 @@ class AuditController extends Controller
         // Calcul pourcentages
         $total_votes = $resultats->sum('voix');
         $resultats = $resultats->map(function ($r) use ($total_votes) {
-            $r['pourcentage'] = $total_votes > 0 
-                ? round(($r['voix'] / $total_votes) * 100, 2) 
+            $r['pourcentage'] = $total_votes > 0
+                ? round(($r['voix'] / $total_votes) * 100, 2)
                 : 0;
             return $r;
         });
