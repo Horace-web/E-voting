@@ -17,25 +17,28 @@ use App\Http\Requests\VerifyAccountRequest;
 use App\Models\EmailVerification;
 use Illuminate\Support\Facades\Hash;
 use App\Services\AuditService;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
-    /**
-     * @OA\Post(
-     *     path="/api/auth/request-otp",
-     *     tags={"Authentification"},
-     *     summary="Demander un code OTP",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email"},
-     *             @OA\Property(property="email", type="string", format="email", example="electeur@universite.bj")
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="OTP envoyé"),
-     *     @OA\Response(response=404, description="Email non reconnu")
-     * )
-     */
+    #[OA\Post(
+        path: '/api/auth/request-otp',
+        summary: 'Demander un code OTP',
+        tags: ['Authentification'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'electeur@universite.bj')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'OTP envoyé'),
+            new OA\Response(response: 404, description: 'Email non reconnu')
+        ]
+    )]
     public function requestOtp(RequestOtpRequest $request)
     {
         $email = $request->email;
@@ -97,7 +100,25 @@ class AuthController extends Controller
     }
 
 
-
+        #[OA\Post(
+            path: '/api/auth/verify-otp',
+            summary: 'Vérifier le code OTP',
+            tags: ['Authentification'],
+            requestBody: new OA\RequestBody(
+                required: true,
+                content: new OA\JsonContent(
+                    required: ['email', 'code'],
+                    properties: [
+                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'electeur@universite.bj'),
+                        new OA\Property(property: 'code', type: 'string', example: '123456')
+                    ]
+                )
+            ),
+            responses: [
+                new OA\Response(response: 200, description: 'Connexion réussie'),
+                new OA\Response(response: 401, description: 'Code invalide ou expiré')
+            ]
+        )]
         public function verifyOtp(VerifyOtpRequest $request)
         {
             $email = $request->email;
@@ -166,9 +187,15 @@ class AuthController extends Controller
             }
         }
 
-        /**
- * Récupérer les infos de l'utilisateur connecté
- */
+    #[OA\Get(
+        path: '/api/auth/me',
+        summary: 'Utilisateur connecté',
+        security: [['sanctum' => []]],
+        tags: ['Authentification'],
+        responses: [
+            new OA\Response(response: 200, description: 'Infos utilisateur')
+        ]
+    )]
     public function me(Request $request)
     {
         return response()->json([
@@ -183,9 +210,15 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Déconnexion (suppression du token)
-     */
+     #[OA\Post(
+        path: '/api/auth/logout',
+        summary: 'Déconnexion',
+        security: [['sanctum' => []]],
+        tags: ['Authentification'],
+        responses: [
+            new OA\Response(response: 200, description: 'Déconnexion réussie')
+        ]
+    )]
     public function logout(Request $request)
     {
 
@@ -204,11 +237,27 @@ class AuthController extends Controller
 
     }
 
-    /**
-     * Vérification du compte via token de confirmation
-     */
 
-public function verifyAccount(VerifyAccountRequest $request)
+   #[OA\Post(
+        path: '/api/auth/verify-account',
+        summary: 'Vérification du compte via token',
+        tags: ['Authentification'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['token', 'password'],
+                properties: [
+                    new OA\Property(property: 'token', type: 'string', example: 'abc123'),
+                    new OA\Property(property: 'password', type: 'string', example: 'monMotDePasse')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Compte activé'),
+            new OA\Response(response: 401, description: 'Token invalide ou expiré')
+        ]
+    )]
+    public function verifyAccount(VerifyAccountRequest $request)
     {
         DB::beginTransaction();
 
@@ -266,7 +315,27 @@ public function verifyAccount(VerifyAccountRequest $request)
         }
     }
 
-public function login(Request $request)
+
+    #[OA\Post(
+        path: '/api/auth/login',
+        summary: 'Connexion avec email et mot de passe',
+        tags: ['Authentification'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'admin@evoting.bj'),
+                    new OA\Property(property: 'password', type: 'string', example: 'password123')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Connexion réussie'),
+            new OA\Response(response: 401, description: 'Identifiants incorrects')
+        ]
+    )]
+    public function login(Request $request)
     {
         $request->validate([
             'email'    => 'required|email',

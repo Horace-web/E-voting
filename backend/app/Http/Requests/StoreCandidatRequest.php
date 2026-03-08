@@ -19,7 +19,7 @@ class StoreCandidatRequest extends FormRequest
         return [
             'nom' => 'required|string|max:255',
             'programme' => 'nullable|string',
-            'photo' => 'nullable|image|mimes:jpeg,jpg,png|max:2048', // ✅ Max 2MB
+            'photo_path' => 'nullable|string', //  On reçoit le chemin, pas le fichier
         ];
     }
 

@@ -16,6 +16,9 @@ class Candidat extends Model
         'programme',
     ];
 
+    public $incrementing = false;  // ✅ Nécessaire pour UUID
+    protected $keyType = 'string'; // ✅ Nécessaire pour UUID
+
     /**
      * Relation : candidat appartient à une élection
      */

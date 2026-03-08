@@ -17,12 +17,13 @@ class UpdateElectionRequest extends FormRequest
         public function rules()
     {
         return [
-            'titre' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'date_debut' => 'required|date|after:now',
-            'date_fin' => 'required|date|after:date_debut', // ✅ Validation critique
+            'titre' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'date_debut' => 'sometimes|date|after:now',
+            'date_fin' => 'sometimes|date|after:date_debut',
         ];
     }
+
 
     public function messages()
     {

@@ -14,13 +14,14 @@ class AuditService
         string $action,
         ?string $model = null,
         ?string $model_id = null,
-        ?array $metadata = null
+        ?array $metadata = null,
+        ?string $force_user_id = null
     ) {
         try {
             $user = Auth::user();
 
             AuditLog::create([
-                'user_id'    => $user?->id,
+                'user_id'    => $force_user_id ?? (auth()->check() ? auth()->id() : null),
                 'action'     => $action,
                 'model'      => $model,
                 'model_id'   => $model_id,
@@ -42,7 +43,7 @@ class AuditService
         self::log('login', 'User', $user->id, [
             'email' => $user->email,
             'role' => $user->role->code,
-        ]);
+        ], $user->id);
     }
 
     /**
@@ -62,7 +63,7 @@ class AuditService
             'user_id' => $user->id,
             'user_email' => $user->email,
             // ❌ JAMAIS le candidat_id
-        ]);
+        ], $user->id);
     }
 
     /**

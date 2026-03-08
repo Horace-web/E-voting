@@ -86,7 +86,7 @@
     </table>
 
     <div class="footer">
-        <p>Document généré automatiquement — Système de Vote Électronique</p>
+        <p>Merci pour votre fidélité — Système de Vote Électronique</p>
     </div>
 </body>
 </html>
