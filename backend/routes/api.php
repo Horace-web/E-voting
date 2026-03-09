@@ -7,7 +7,8 @@ use App\Http\Controllers\Api\ElectionController;
 use App\Http\Controllers\Api\CandidatController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UploadController;
-use App\Http\Controllers\Api\VoteController;
+use App\Http\Controllers\Api\AuditController;
+
 
 // ========================================
 // ROUTES PUBLIQUES (pas de connexion)
@@ -16,6 +17,8 @@ use App\Http\Controllers\Api\VoteController;
 Route::post('/auth/verify-account', [AuthController::class, 'verifyAccount']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/roles', [RoleController::class, 'index']);
+Route::post('/auth/forgot-password-otp', [AuthController::class, 'forgotPasswordOtp']);
+Route::post('/auth/verify-otp-reset-password', [AuthController::class, 'verifyOtpResetPassword']);
 // ========================================
 // ROUTES PROTÉGÉES (connexion requise)
 // ========================================
@@ -89,4 +92,74 @@ Route::middleware('auth:sanctum')->group(function () {
         // Consultation résultats détaillés, logs, etc.
         // Route::get('/elections/{id}/logs', [ElectionController::class, 'logs']);
     });
+});
+
+// Route log système
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/logs', [AuditController::class, 'index']);
+});
+
+// Route détails log
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/logs/{id}', [AuditController::class, 'show']);
+});
+
+// Route logs participations
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/participations', [AuditController::class, 'participations']);
+});
+
+// Route vérification intégrité élection
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/elections/{id}/integrity', [AuditController::class, 'checkIntegrity']);
+});
+
+// Route statistiques audit
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/stats', [AuditController::class, 'stats']);
+});
+
+// Route export logs
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/export/logs', [AuditController::class, 'exportLogs']);
+});
+
+// Route export rapport pdf
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/export/report/{election_id}', [AuditController::class, 'exportReport']);
+});
+
+// Route log système
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/logs', [AuditController::class, 'index']);
+});
+
+// Route détails log
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/logs/{id}', [AuditController::class, 'show']);
+});
+
+// Route logs participations
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/participations', [AuditController::class, 'participations']);
+});
+
+// Route vérification intégrité élection
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/elections/{id}/integrity', [AuditController::class, 'checkIntegrity']);
+});
+
+// Route statistiques audit
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/stats', [AuditController::class, 'stats']);
+});
+
+// Route export logs
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/export/logs', [AuditController::class, 'exportLogs']);
+});
+
+// Route export rapport pdf
+Route::middleware(['auth:sanctum', 'role:AUDITOR'])->group(function () {
+    Route::get('/audit/export/report/{election_id}', [AuditController::class, 'exportReport']);
 });
