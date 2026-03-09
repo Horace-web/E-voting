@@ -14,7 +14,7 @@ class RolesSeeder extends Seeder
      */
     public function run()
 {
-    DB::table('roles')->insert([
+    DB::table('roles')->upsert([
         [
             'id' => Str::uuid(),
             'code' => 'ADMIN',
@@ -39,6 +39,8 @@ class RolesSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ],
-    ]);
+    ], ['code'], ['nom', 'description', 'updated_at']); 
+    // ^ Le 2ème argument ['code'] est la colonne à vérifier pour l'unicité.
+    // ^ Le 3ème argument liste les colonnes à mettre à jour si le code existe déjà.
 }
 }

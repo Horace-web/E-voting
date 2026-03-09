@@ -10,11 +10,42 @@ use App\Http\Requests\StoreCandidatRequest;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CandidatResource;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class CandidatController extends Controller
 {
-    //
-
+    #[OA\Post(
+        path: '/api/elections/{election_id}/candidats',
+        summary: 'Ajouter un candidat à une élection',
+        security: [['sanctum' => []]],
+        tags: ['Candidats'],
+        parameters: [
+            new OA\Parameter(
+                name: 'election_id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['nom'],
+                properties: [
+                    new OA\Property(property: 'nom', type: 'string', example: 'Jean Dupont'),
+                    new OA\Property(property: 'programme', type: 'string', example: 'Mon programme électoral'),
+                    new OA\Property(property: 'photo_path', type: 'string', example: 'candidats/photo.jpg'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Candidat ajouté avec succès'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 422, description: 'Données invalides'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function store(StoreCandidatRequest $request, $election_id)
     {
         $election = Election::findOrFail($election_id);
@@ -23,7 +54,7 @@ class CandidatController extends Controller
             'election_id' => $election->id,
             'nom' => $request->nom,
             'programme' => $request->programme,
-            'photo' => $request->photo_path, // ✅ Stocke le chemin
+            'photo' => $request->photo_path,
         ]);
 
         return response()->json([
@@ -34,17 +65,48 @@ class CandidatController extends Controller
                 'nom' => $candidat->nom,
                 'programme' => $candidat->programme,
                 'photo_url' => $candidat->photo
-                    ? asset('storage/' . $candidat->photo)  // ✅ URL complète
+                    ? asset('storage/' . $candidat->photo)
                     : null,
             ]
         ], 201);
     }
 
-        public function update(Request $request, $id)
+    #[OA\Put(
+        path: '/api/candidats/{id}',
+        summary: 'Modifier un candidat',
+        security: [['sanctum' => []]],
+        tags: ['Candidats'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID du candidat'
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'nom', type: 'string', example: 'Jean Dupont'),
+                    new OA\Property(property: 'programme', type: 'string', example: 'Mon programme mis à jour'),
+                    new OA\Property(property: 'photo', type: 'string', format: 'binary', description: 'Photo du candidat'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Candidat mis à jour avec succès'),
+            new OA\Response(response: 403, description: 'Élection déjà ouverte ou clôturée'),
+            new OA\Response(response: 404, description: 'Candidat non trouvé'),
+            new OA\Response(response: 422, description: 'Données invalides'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
+    public function update(Request $request, $id)
     {
         $candidat = Candidat::with('election')->findOrFail($id);
 
-        // ✅ Vérification critique : élection pas encore ouverte
         if (in_array($candidat->election->statut, ['EnCours', 'Clôturée'])) {
             return response()->json([
                 'success' => false,
@@ -52,16 +114,13 @@ class CandidatController extends Controller
             ], 403);
         }
 
-        // Validation
         $validated = $request->validate([
             'nom' => 'sometimes|string|max:255',
             'programme' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
         ]);
 
-        // Gestion photo si nouvelle
         if ($request->hasFile('photo')) {
-            // Supprimer ancienne photo si existe
             if ($candidat->photo) {
                 Storage::disk('public')->delete($candidat->photo);
             }
@@ -77,11 +136,31 @@ class CandidatController extends Controller
         ]);
     }
 
-        public function destroy($id)
+    #[OA\Delete(
+        path: '/api/candidats/{id}',
+        summary: 'Supprimer un candidat',
+        security: [['sanctum' => []]],
+        tags: ['Candidats'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID du candidat'
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Candidat supprimé avec succès'),
+            new OA\Response(response: 403, description: 'Élection déjà ouverte ou clôturée'),
+            new OA\Response(response: 404, description: 'Candidat non trouvé'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
+    public function destroy($id)
     {
         $candidat = Candidat::with('election')->findOrFail($id);
 
-        // ✅ Vérification : élection pas encore ouverte
         if (in_array($candidat->election->statut, ['EnCours', 'Clôturée'])) {
             return response()->json([
                 'success' => false,
@@ -89,7 +168,6 @@ class CandidatController extends Controller
             ], 403);
         }
 
-        // Supprimer photo si existe
         if ($candidat->photo) {
             Storage::disk('public')->delete($candidat->photo);
         }
@@ -102,5 +180,3 @@ class CandidatController extends Controller
         ]);
     }
 }
-
-

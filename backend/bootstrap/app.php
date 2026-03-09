@@ -30,6 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens([
             'http://localhost:5173',
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+        'api/docs*',
+        'api/documentation*',
+        'api/oauth2-callback',
+    ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
