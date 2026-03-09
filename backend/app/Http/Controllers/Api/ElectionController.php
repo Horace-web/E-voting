@@ -10,20 +10,25 @@ use App\Http\Requests\StoreElectionRequest;
 use App\Http\Requests\UpdateElectionRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class ElectionController extends Controller
 {
-    /**
-     * Lister les élections
-     * - ADMIN : toutes les élections
-     * - VOTER : élections EN COURS uniquement
-     */
+    #[OA\Get(
+        path: '/api/elections',
+        summary: 'Lister les élections',
+        description: 'ADMIN : toutes les élections. VOTER : élections EN COURS uniquement.',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        responses: [
+            new OA\Response(response: 200, description: 'Liste des élections'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function index(Request $request)
     {
         $user = $request->user();
 
-        // Si admin : toutes les élections
         if ($user->role->code === 'ADMIN') {
             $elections = Election::with('candidats', 'createur')
                 ->orderBy('created_at', 'desc')
@@ -47,14 +52,12 @@ class ElectionController extends Controller
             ]);
         }
 
-        // Si électeur : élections EN COURS uniquement
         $elections = Election::where('statut', 'EnCours')
             ->where('date_debut', '<=', now())
             ->where('date_fin', '>=', now())
             ->with('candidats')
             ->get()
             ->map(function ($election) use ($user) {
-                // Vérifier si l'utilisateur a déjà voté
                 $aVote = Participation::where('user_id', $user->id)
                     ->where('election_id', $election->id)
                     ->exists();
@@ -66,7 +69,7 @@ class ElectionController extends Controller
                     'date_debut' => $election->date_debut,
                     'date_fin' => $election->date_fin,
                     'nb_candidats' => $election->candidats->count(),
-                    'a_vote' => $aVote, // ✅ Indication si déjà voté
+                    'a_vote' => $aVote,
                 ];
             });
 
@@ -76,25 +79,32 @@ class ElectionController extends Controller
         ]);
     }
 
-    /**
-     * Créer une élection (ADMIN uniquement)
-     */
+    #[OA\Post(
+        path: '/api/elections',
+        summary: 'Créer une élection (ADMIN uniquement)',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['titre', 'date_debut', 'date_fin'],
+                properties: [
+                    new OA\Property(property: 'titre', type: 'string', example: 'Élection du bureau 2025'),
+                    new OA\Property(property: 'description', type: 'string', example: 'Description de l\'élection'),
+                    new OA\Property(property: 'date_debut', type: 'string', format: 'datetime', example: '2025-06-01 08:00:00'),
+                    new OA\Property(property: 'date_fin', type: 'string', format: 'datetime', example: '2025-06-01 18:00:00'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Élection créée avec succès'),
+            new OA\Response(response: 422, description: 'Données invalides'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+            new OA\Response(response: 403, description: 'Accès refusé'),
+        ]
+    )]
     public function store(StoreElectionRequest $request)
     {
-
-        Log::info('Store appelé', [
-        'date_debut' => $request->date_debut,
-        'date_fin'   => $request->date_fin,
-        'lte'        => Carbon::parse($request->date_fin)->lte(Carbon::parse($request->date_debut))
-    ]);
-
-    if (Carbon::parse($request->date_fin)->lte(Carbon::parse($request->date_debut))) {
-        return response()->json([
-            'success' => false,
-            'message' => 'La date de clôture doit être après la date d\'ouverture'
-        ], 422);
-    }
-        // Validation supplémentaire : date_fin > date_debut
         if (Carbon::parse($request->date_fin)->lte(Carbon::parse($request->date_debut))) {
             return response()->json([
                 'success' => false,
@@ -107,9 +117,12 @@ class ElectionController extends Controller
             'description' => $request->description,
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
-            'statut' => 'Brouillon', // ✅ Statut par défaut
-             'created_by' => optional(\Illuminate\Support\Facades\Auth::user())->id,
+            'statut' => 'Brouillon',
+            'created_by' => optional(\Illuminate\Support\Facades\Auth::user())->id,
         ]);
+
+        AuditService::logElectionCreated($election);
+        DB::commit();
 
         return response()->json([
             'success' => true,
@@ -126,9 +139,26 @@ class ElectionController extends Controller
         ], 201);
     }
 
-    /**
-     * Afficher une élection
-     */
+    #[OA\Get(
+        path: '/api/elections/{id}',
+        summary: 'Afficher les détails d\'une élection',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Détails de l\'élection'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function show($id)
     {
         $election = Election::with('candidats', 'createur')->findOrFail($id);
@@ -162,15 +192,43 @@ class ElectionController extends Controller
         ]);
     }
 
-    /**
-     * Modifier une élection (ADMIN uniquement)
-     */
+    #[OA\Put(
+        path: '/api/elections/{id}',
+        summary: 'Modifier une élection (ADMIN uniquement)',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'titre', type: 'string', example: 'Nouveau titre'),
+                    new OA\Property(property: 'description', type: 'string', example: 'Nouvelle description'),
+                    new OA\Property(property: 'date_debut', type: 'string', format: 'datetime', example: '2025-06-01 08:00:00'),
+                    new OA\Property(property: 'date_fin', type: 'string', format: 'datetime', example: '2025-06-01 18:00:00'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Élection mise à jour avec succès'),
+            new OA\Response(response: 403, description: 'Élection déjà ouverte ou clôturée'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 422, description: 'Données invalides'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function update(UpdateElectionRequest $request, $id)
     {
-
         $election = Election::findOrFail($id);
 
-        // ✅ Vérification : modification interdite si élection déjà ouverte ou clôturée
         if (in_array($election->statut, ['EnCours', 'Clôturée'])) {
             return response()->json([
                 'success' => false,
@@ -178,7 +236,6 @@ class ElectionController extends Controller
             ], 403);
         }
 
-        // Validation dates si modifiées
         if ($request->has(['date_debut', 'date_fin'])) {
             $dateDebut = $request->date_debut ?? $election->date_debut;
             $dateFin = $request->date_fin ?? $election->date_fin;
@@ -191,19 +248,13 @@ class ElectionController extends Controller
             }
         }
 
-        $data = $request->only([
-            'titre',
-            'description',
-            'date_debut',
-            'date_fin',
-        ]);
+        $data = $request->only(['titre', 'description', 'date_debut', 'date_fin']);
 
         $election->fill($data);
 
         if ($election->isDirty()) {
             $election->save();
         }
-
 
         return response()->json([
             'success' => true,
@@ -219,14 +270,31 @@ class ElectionController extends Controller
         ]);
     }
 
-    /**
-     * Supprimer une élection (ADMIN uniquement)
-     */
+    #[OA\Delete(
+        path: '/api/elections/{id}',
+        summary: 'Supprimer une élection (ADMIN uniquement)',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Élection supprimée avec succès'),
+            new OA\Response(response: 403, description: 'Élection ouverte/clôturée ou avec des votes'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function destroy($id)
     {
         $election = Election::findOrFail($id);
 
-        // ✅ Vérification : suppression interdite si élection déjà ouverte ou clôturée
         if (in_array($election->statut, ['EnCours', 'Clôturée'])) {
             return response()->json([
                 'success' => false,
@@ -234,7 +302,6 @@ class ElectionController extends Controller
             ], 403);
         }
 
-        // ✅ Vérification : suppression interdite si des votes existent
         if ($election->votes()->count() > 0) {
             return response()->json([
                 'success' => false,
@@ -242,10 +309,7 @@ class ElectionController extends Controller
             ], 403);
         }
 
-        // Supprimer les candidats associés (cascade automatique normalement)
         $election->candidats()->delete();
-
-        // Supprimer l'élection
         $election->delete();
 
         return response()->json([
@@ -254,14 +318,31 @@ class ElectionController extends Controller
         ]);
     }
 
-    /**
-     * Publier une élection (Brouillon → Publiée)
-     */
+    #[OA\Post(
+        path: '/api/elections/{id}/publier',
+        summary: 'Publier une élection (Brouillon → Publiée)',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Élection publiée avec succès'),
+            new OA\Response(response: 400, description: 'Conditions de publication non remplies'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function publier($id)
     {
         $election = Election::findOrFail($id);
 
-        // Vérification 1 : Élection en brouillon
         if ($election->statut !== 'Brouillon') {
             return response()->json([
                 'success' => false,
@@ -269,7 +350,6 @@ class ElectionController extends Controller
             ], 400);
         }
 
-        // Vérification 2 : Minimum 2 candidats ✅
         $nbCandidats = $election->candidats()->count();
         if ($nbCandidats < 2) {
             return response()->json([
@@ -278,7 +358,6 @@ class ElectionController extends Controller
             ], 400);
         }
 
-        // Vérification 3 : Dates cohérentes
         if ($election->date_fin <= $election->date_debut) {
             return response()->json([
                 'success' => false,
@@ -286,7 +365,6 @@ class ElectionController extends Controller
             ], 400);
         }
 
-        // Changement statut
         $election->update(['statut' => 'Publiée']);
 
         return response()->json([
@@ -300,14 +378,31 @@ class ElectionController extends Controller
         ]);
     }
 
-    /**
-     * Clôturer une élection (EnCours → Clôturée)
-     */
+    #[OA\Post(
+        path: '/api/elections/{id}/cloturer',
+        summary: 'Clôturer une élection (EnCours → Clôturée)',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Élection clôturée avec succès + résultats'),
+            new OA\Response(response: 400, description: 'Élection non en cours'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function cloturer($id)
     {
         $election = Election::findOrFail($id);
 
-        // Vérification : élection doit être en cours
         if ($election->statut !== 'EnCours') {
             return response()->json([
                 'success' => false,
@@ -315,10 +410,8 @@ class ElectionController extends Controller
             ], 400);
         }
 
-        // Changement statut
         $election->update(['statut' => 'Clôturée']);
 
-        // ✅ Dépouillement automatique
         $resultats = $this->depouiller($election);
 
         return response()->json([
@@ -335,14 +428,30 @@ class ElectionController extends Controller
         ]);
     }
 
-    /**
-     * Résultats d'une élection
-     */
+    #[OA\Get(
+        path: '/api/elections/{id}/resultats',
+        summary: 'Résultats d\'une élection',
+        security: [['sanctum' => []]],
+        tags: ['Elections'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer'),
+                description: 'ID de l\'élection'
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Résultats de l\'élection'),
+            new OA\Response(response: 404, description: 'Élection non trouvée'),
+            new OA\Response(response: 401, description: 'Non autorisé'),
+        ]
+    )]
     public function resultats($id)
     {
         $election = Election::with('candidats')->findOrFail($id);
 
-        // Calculer résultats
         $resultats = $election->candidats->map(function ($candidat) {
             $nbVoix = Vote::where('candidat_id', $candidat->id)->count();
             return [
@@ -355,7 +464,6 @@ class ElectionController extends Controller
         $totalVotes = $election->votes()->count();
         $totalElecteurs = Participation::where('election_id', $election->id)->count();
 
-        // Ajouter pourcentages
         $resultatsAvecPourcentages = $resultats->map(function ($resultat) use ($totalVotes) {
             $resultat['pourcentage'] = $totalVotes > 0
                 ? round(($resultat['voix'] / $totalVotes) * 100, 2)
@@ -399,7 +507,6 @@ class ElectionController extends Controller
 
         $totalVotes = $election->votes()->count();
 
-        // Calculer pourcentages
         $resultatsAvecPourcentages = $resultats->map(function ($resultat) use ($totalVotes) {
             $resultat['pourcentage'] = $totalVotes > 0
                 ? round(($resultat['voix'] / $totalVotes) * 100, 2)
