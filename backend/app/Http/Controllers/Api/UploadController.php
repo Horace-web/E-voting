@@ -48,10 +48,6 @@ class UploadController extends Controller
     )]
     public function storePhoto(Request $request)
     {
-        $request->validate([
-            'photo' => 'required|image|mimes:jpeg,jpg,png|max:2048'
-        ]);
-
         $path = $request->file('photo')->store('candidats', 'public');
 
         return response()->json([

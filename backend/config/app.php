@@ -124,6 +124,6 @@ return [
     ],
 
 
-    'frontend_url' => env('FRONTEND_URL', 'https://evoting-esgis.netlify.app'),
+    'frontend_url' => env('FRONTEND_URL', 'https://e-voting-esgis.netlify.app'),
 
 ];

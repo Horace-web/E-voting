@@ -69,10 +69,11 @@ class AuthController extends Controller
             $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
 
             CodeOtp::create([
-                'email' => $email,
-                'code' => $code,
+                'email'     => $email,
+                'code'      => $code,
+                'type'      => CodeOtp::TYPE_LOGIN,
                 'expire_at' => now()->addMinutes(10),
-                'utilise' => false,
+                'utilise'   => false,
             ]);
 
             Mail::to($email)->send(new OtpMail($email, $code));
@@ -129,6 +130,7 @@ class AuthController extends Controller
             try {
                 $otpRecord = CodeOtp::where('email', $email)
                     ->where('code', $code)
+                    ->where('type', CodeOtp::TYPE_LOGIN)  // ✅ Filtrer par type
                     ->where('utilise', false)
                     ->where('expire_at', '>', now())
                     ->first();

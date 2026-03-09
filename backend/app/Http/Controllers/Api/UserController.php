@@ -84,6 +84,13 @@ class UserController extends Controller
     )]
     public function store(StoreUserRequest $request)
     {
+        // Débogage temporaire
+    Log::info('Role ID reçu : ' . $request->role_id);
+
+    // Vérifier si le rôle existe
+    $roleExiste = \App\Models\Role::where('id', $request->role_id)->exists();
+    Log::info('Rôle existe : ' . ($roleExiste ? 'Oui' : 'Non'));
+
         DB::beginTransaction();
 
         try {
