@@ -11,6 +11,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AuditLog;
 use OpenApi\Attributes as OA;
+use Illuminate\Support\Facades\DB;
 
 class AuditController extends Controller
 {
@@ -168,8 +169,8 @@ class AuditController extends Controller
         $votes_count = $election->votes()->count();
         $is_coherent = ($participations_count === $votes_count);
 
-        $duplicates = \DB::table('participations')
-            ->select('user_id', \DB::raw('count(*) as total'))
+        $duplicates = DB::table('participations')
+            ->select('user_id', DB::raw('count(*) as total'))
             ->where('election_id', $election_id)
             ->groupBy('user_id')
             ->having('total', '>', 1)
@@ -218,7 +219,7 @@ class AuditController extends Controller
 
         $logs_recent = AuditLog::recent(7)->count();
 
-        $top_actions = AuditLog::select('action', \DB::raw('count(*) as total'))
+        $top_actions = AuditLog::select('action', DB::raw('count(*) as total'))
             ->groupBy('action')
             ->orderBy('total', 'desc')
             ->limit(10)

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CandidatController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\AuditController;
+use App\Http\Controllers\Api\VoteController;
 
 
 // ========================================

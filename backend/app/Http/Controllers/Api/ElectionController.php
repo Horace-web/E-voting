@@ -11,6 +11,8 @@ use App\Http\Requests\UpdateElectionRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use OpenApi\Attributes as OA;
+use App\Services\AuditService;
+use Illuminate\Support\Facades\DB;
 
 class ElectionController extends Controller
 {
