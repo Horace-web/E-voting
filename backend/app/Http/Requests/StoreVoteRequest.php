@@ -8,6 +8,15 @@ use App\Models\Candidat;
 
 class StoreVoteRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (!$this->filled('election_id') && $this->route('election_id')) {
+            $this->merge([
+                'election_id' => $this->route('election_id'),
+            ]);
+        }
+    }
+
     /**
      * Autorisation
      */

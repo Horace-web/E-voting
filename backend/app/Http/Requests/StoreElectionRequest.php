@@ -20,7 +20,7 @@ class StoreElectionRequest extends FormRequest
         return [
             'titre'       => 'required|string|max:255',
             'description' => 'nullable|string',
-            'date_debut'  => 'required|date|after:now',
+            'date_debut'  => 'required|date',
             'date_fin'    => 'required|date',
         ];
     }
@@ -32,6 +32,13 @@ class StoreElectionRequest extends FormRequest
                 try {
                     $debut = Carbon::parse($this->date_debut);
                     $fin   = Carbon::parse($this->date_fin);
+
+                    if ($debut->lt(now()->subHour())) {
+                        $validator->errors()->add(
+                            'date_debut',
+                            'La date d\'ouverture doit être maintenant ou dans le futur proche.'
+                        );
+                    }
 
                     if ($fin->lte($debut)) {
                         $validator->errors()->add(
@@ -49,7 +56,7 @@ class StoreElectionRequest extends FormRequest
     public function messages()
     {
         return [
-            'date_debut.after' => 'La date d\'ouverture doit être dans le futur.',
+            'date_debut.required' => 'La date d\'ouverture est obligatoire.',
         ];
     }
 

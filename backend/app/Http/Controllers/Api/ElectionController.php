@@ -367,11 +367,17 @@ class ElectionController extends Controller
             ], 400);
         }
 
-        $election->update(['statut' => 'Publiée']);
+        $status = now()->between($election->date_debut, $election->date_fin)
+            ? 'EnCours'
+            : 'Publiée';
+
+        $election->update(['statut' => $status]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Élection publiée avec succès',
+            'message' => $status === 'EnCours'
+                ? 'Élection publiée et ouverte avec succès'
+                : 'Élection publiée avec succès',
             'data' => [
                 'id' => $election->id,
                 'titre' => $election->titre,

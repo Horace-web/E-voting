@@ -1,16 +1,143 @@
-import api from '../api/axios';
+﻿import api from "../api/axios";
+import API_ROUTES from "../config/api.routes";
 
-export const testApi = async () => {
-    try {
-        console.log('🔗 Testing connection to Laravel API...');
-        const response = await api.get('/test');
-        return response.data;
-    } catch (error) {
-        console.error('🔥 API Connection Error:', {
-            message: error.message,
-            status: error.response?.status,
-            data: error.response?.data
-        });
-        throw error;
+/**
+ * Service d'authentification
+ * GÃ¨re la connexion, dÃ©connexion, confirmation d'inscription et gestion du profil
+ */
+const authService = {
+  /**
+   * Connexion avec email et mot de passe
+   * @param {string} email - Email de l'utilisateur
+   * @param {string} password - Mot de passe
+   * @returns {Promise} DonnÃ©es utilisateur + token
+   */
+  login: async (email, password) => {
+    const response = await api.post(API_ROUTES.AUTH.LOGIN, { email, password });
+
+    // Stocker le token et les infos utilisateur
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("role", response.data.user.role || "voter");
     }
+
+    return response.data;
+  },
+
+  /**
+   * Confirmer l'inscription via le token reÃ§u par email
+   * @param {string} token - Token de confirmation (64 caractÃ¨res)
+   * @returns {Promise} DonnÃ©es de confirmation
+   */
+  confirmAccount: async (token, password, passwordConfirmation) => {
+    const response = await api.post(API_ROUTES.AUTH.VERIFY_ACCOUNT, {
+      token,
+      password,
+      confirm_password: passwordConfirmation,
+    });
+    return response.data;
+  },
+
+  /**
+   * DÃ©connexion selon le guide Postman
+   * @returns {Promise}
+   */
+  logout: async () => {
+    try {
+      await api.post(API_ROUTES.AUTH.LOGOUT);
+    } catch (error) {
+      console.error("Erreur lors de la dÃ©connexion:", error);
+    } finally {
+      // Nettoyer le localStorage selon le guide Postman
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+    }
+  },
+
+  /**
+   * RÃ©cupÃ©rer le profil de l'utilisateur connectÃ©
+   * @returns {Promise} DonnÃ©es du profil
+   */
+  getProfile: async () => {
+    const response = await api.get(API_ROUTES.AUTH.PROFILE);
+    return response.data;
+  },
+
+  /**
+   * Mettre Ã  jour le profil
+   * @param {object} data - DonnÃ©es Ã  mettre Ã  jour
+   * @returns {Promise}
+   */
+  updateProfile: async (data) => {
+    const response = await api.put(API_ROUTES.AUTH.UPDATE_PROFILE, data);
+    return response.data;
+  },
+
+  /**
+   * Demander un nouveau lien de confirmation
+   * @param {string} email
+   * @returns {Promise}
+   */
+  resendConfirmationLink: async (email) => {
+    const response = await api.post(API_ROUTES.AUTH.RESEND_CONFIRMATION, { email });
+    return response.data;
+  },
+
+  /**
+   * Demander un lien de rÃ©initialisation de mot de passe
+   * @param {string} email
+   * @returns {Promise}
+   */
+  forgotPassword: async (email) => {
+    const response = await api.post(API_ROUTES.AUTH.FORGOT_PASSWORD, { email });
+    return response.data;
+  },
+
+  /**
+   * RÃ©initialiser le mot de passe via token
+   * @param {object} data
+   * @returns {Promise}
+   */
+  resetPassword: async (data) => {
+    const response = await api.post(API_ROUTES.AUTH.RESET_PASSWORD, data);
+    return response.data;
+  },
+
+  /**
+   * VÃ©rifier si l'utilisateur est authentifiÃ©
+   * @returns {boolean}
+   */
+  isAuthenticated: () => {
+    return !!localStorage.getItem("token");
+  },
+
+  /**
+   * RÃ©cupÃ©rer le token
+   * @returns {string|null}
+   */
+  getToken: () => {
+    return localStorage.getItem("token");
+  },
+
+  /**
+   * RÃ©cupÃ©rer l'utilisateur stockÃ©
+   * @returns {object|null}
+   */
+  getUser: () => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  },
+
+  /**
+   * RÃ©cupÃ©rer le rÃ´le
+   * @returns {string}
+   */
+  getRole: () => {
+    return localStorage.getItem("role") || "visitor";
+  },
 };
+
+export default authService;
+

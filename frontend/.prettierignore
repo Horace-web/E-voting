@@ -1,0 +1,6 @@
+node_modules
+dist
+build
+.vite-temp
+*.min.js
+package-lock.json
